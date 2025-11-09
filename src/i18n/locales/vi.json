@@ -1,0 +1,21 @@
+{
+  "login": {
+    "title": "Chào mừng trở lại",
+    "subtitle": "Đăng nhập vào tài khoản của bạn để tiếp tục học tập",
+    "emailLabel": "Địa chỉ Email",
+    "emailPlaceholder": "Nhập email của bạn",
+    "passwordLabel": "Mật khẩu",
+    "passwordPlaceholder": "Nhập mật khẩu của bạn",
+    "rememberMe": "Ghi nhớ đăng nhập",
+    "forgotPassword": "Quên mật khẩu?",
+    "loginButton": "Đăng nhập",
+    "loggingIn": "Đang đăng nhập...",
+    "noAccount": "Chưa có tài khoản?",
+    "signUp": "Đăng ký tại đây",
+    "emailLogin": "Đăng nhập Email",
+    "ssoLogin": "Đăng nhập SSO",
+    "invalidCredentials": "Email hoặc mật khẩu không đúng",
+    "error": "Đã xảy ra lỗi. Vui lòng thử lại."
+  }
+}
+

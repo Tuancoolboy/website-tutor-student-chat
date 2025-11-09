@@ -1,0 +1,26 @@
+{
+  "functions": {
+    "api/index.ts": {
+      "memory": 2048,
+      "maxDuration": 60
+    },
+    "api/messages/poll.ts": {
+      "memory": 512,
+      "maxDuration": 10
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.ts"
+    },
+    {
+      "source": "/health",
+      "destination": "/api/index.ts"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

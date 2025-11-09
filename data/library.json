@@ -1,0 +1,572 @@
+[
+  {
+    "id": "lib_ctAdEjPoGffW",
+    "title": "Tài liệu Cơ học kỹ thuật - Phần 1",
+    "type": "video",
+    "subject": "Cơ học kỹ thuật",
+    "description": "Tài liệu học tập về Cơ học kỹ thuật dành cho sinh viên",
+    "author": "Đỗ Dũng Hương",
+    "url": "https://library.hcmut.edu.vn/resource/IeZHYrITlXoq",
+    "thumbnail": "https://picsum.photos/seed/0/300/400",
+    "tags": [
+      "Cơ học kỹ thuật",
+      "học tập",
+      "tài liệu"
+    ],
+    "downloads": 70,
+    "views": 327,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "lib_wkVxlOBgVUD7",
+    "title": "Tài liệu Mạng máy tính - Phần 2",
+    "type": "book",
+    "subject": "Mạng máy tính",
+    "description": "Tài liệu học tập về Mạng máy tính dành cho sinh viên",
+    "author": "Phan Cường Anh",
+    "url": "https://library.hcmut.edu.vn/resource/at8pqretpIg0",
+    "thumbnail": "https://picsum.photos/seed/1/300/400",
+    "tags": [
+      "Mạng máy tính",
+      "học tập",
+      "tài liệu"
+    ],
+    "downloads": 59,
+    "views": 80,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "lib_mHW3W_EIxZqW",
+    "title": "Tài liệu Cơ học kỹ thuật - Phần 3",
+    "type": "video",
+    "subject": "Cơ học kỹ thuật",
+    "description": "Tài liệu học tập về Cơ học kỹ thuật dành cho sinh viên",
+    "author": "Hoàng Dũng Anh",
+    "url": "https://library.hcmut.edu.vn/resource/ILs21MI97h0q",
+    "thumbnail": "https://picsum.photos/seed/2/300/400",
+    "tags": [
+      "Cơ học kỹ thuật",
+      "học tập",
+      "tài liệu"
+    ],
+    "downloads": 385,
+    "views": 375,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "lib_bXdLJbJxf91b",
+    "title": "Tài liệu Xác suất thống kê - Phần 4",
+    "type": "video",
+    "subject": "Xác suất thống kê",
+    "description": "Tài liệu học tập về Xác suất thống kê dành cho sinh viên",
+    "author": "Phan Khánh Hoàng",
+    "url": "https://library.hcmut.edu.vn/resource/YlQ9_pDTrf0n",
+    "thumbnail": "https://picsum.photos/seed/3/300/400",
+    "tags": [
+      "Xác suất thống kê",
+      "học tập",
+      "tài liệu"
+    ],
+    "downloads": 319,
+    "views": 120,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "lib_WFQIQKTTKn05",
+    "title": "Tài liệu Cấu trúc dữ liệu - Phần 5",
+    "type": "video",
+    "subject": "Cấu trúc dữ liệu",
+    "description": "Tài liệu học tập về Cấu trúc dữ liệu dành cho sinh viên",
+    "author": "Vũ An Minh",
+    "url": "https://library.hcmut.edu.vn/resource/xI_R7CECe8JN",
+    "thumbnail": "https://picsum.photos/seed/4/300/400",
+    "tags": [
+      "Cấu trúc dữ liệu",
+      "học tập",
+      "tài liệu"
+    ],
+    "downloads": 213,
+    "views": 344,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "lib_T_K3a7MmcspP",
+    "title": "Tài liệu Cấu trúc dữ liệu - Phần 6",
+    "type": "book",
+    "subject": "Cấu trúc dữ liệu",
+    "description": "Tài liệu học tập về Cấu trúc dữ liệu dành cho sinh viên",
+    "author": "Phạm Khánh Hương",
+    "url": "https://library.hcmut.edu.vn/resource/iIRDtgXN1s_3",
+    "thumbnail": "https://picsum.photos/seed/5/300/400",
+    "tags": [
+      "Cấu trúc dữ liệu",
+      "học tập",
+      "tài liệu"
+    ],
+    "downloads": 97,
+    "views": 958,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "lib_-rD2j0utBeRy",
+    "title": "Tài liệu Hệ điều hành - Phần 7",
+    "type": "document",
+    "subject": "Hệ điều hành",
+    "description": "Tài liệu học tập về Hệ điều hành dành cho sinh viên",
+    "author": "Bùi Mai Hoàng",
+    "url": "https://library.hcmut.edu.vn/resource/YodRksKuiIf_",
+    "thumbnail": "https://picsum.photos/seed/6/300/400",
+    "tags": [
+      "Hệ điều hành",
+      "học tập",
+      "tài liệu"
+    ],
+    "downloads": 242,
+    "views": 438,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "lib_9aC1LFLG1QuH",
+    "title": "Tài liệu Mạng máy tính - Phần 8",
+    "type": "book",
+    "subject": "Mạng máy tính",
+    "description": "Tài liệu học tập về Mạng máy tính dành cho sinh viên",
+    "author": "Lê Nam Lan",
+    "url": "https://library.hcmut.edu.vn/resource/d2bzW9THnoCT",
+    "thumbnail": "https://picsum.photos/seed/7/300/400",
+    "tags": [
+      "Mạng máy tính",
+      "học tập",
+      "tài liệu"
+    ],
+    "downloads": 182,
+    "views": 817,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "lib_lznEq7hy0Cnl",
+    "title": "Tài liệu Toán cao cấp - Phần 9",
+    "type": "article",
+    "subject": "Toán cao cấp",
+    "description": "Tài liệu học tập về Toán cao cấp dành cho sinh viên",
+    "author": "Vũ An Thị",
+    "url": "https://library.hcmut.edu.vn/resource/yfMYzoYyVrTX",
+    "thumbnail": "https://picsum.photos/seed/8/300/400",
+    "tags": [
+      "Toán cao cấp",
+      "học tập",
+      "tài liệu"
+    ],
+    "downloads": 120,
+    "views": 476,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "lib_aNDNsU5nKBND",
+    "title": "Tài liệu Lập trình C/C++ - Phần 10",
+    "type": "article",
+    "subject": "Lập trình C/C++",
+    "description": "Tài liệu học tập về Lập trình C/C++ dành cho sinh viên",
+    "author": "Đặng Cường Anh",
+    "url": "https://library.hcmut.edu.vn/resource/U4gA8NM6yRb5",
+    "thumbnail": "https://picsum.photos/seed/9/300/400",
+    "tags": [
+      "Lập trình C/C++",
+      "học tập",
+      "tài liệu"
+    ],
+    "downloads": 70,
+    "views": 70,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "lib_QNK9fUg83bZu",
+    "title": "Tài liệu Đại số tuyến tính - Phần 11",
+    "type": "article",
+    "subject": "Đại số tuyến tính",
+    "description": "Tài liệu học tập về Đại số tuyến tính dành cho sinh viên",
+    "author": "Nguyễn Mai Minh",
+    "url": "https://library.hcmut.edu.vn/resource/lJOUmsciTRjM",
+    "thumbnail": "https://picsum.photos/seed/10/300/400",
+    "tags": [
+      "Đại số tuyến tính",
+      "học tập",
+      "tài liệu"
+    ],
+    "downloads": 211,
+    "views": 815,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "lib_pBsDt1_qz49i",
+    "title": "Tài liệu Lập trình Python - Phần 12",
+    "type": "article",
+    "subject": "Lập trình Python",
+    "description": "Tài liệu học tập về Lập trình Python dành cho sinh viên",
+    "author": "Phan Hà Hoàng",
+    "url": "https://library.hcmut.edu.vn/resource/sVY0_NReAGwL",
+    "thumbnail": "https://picsum.photos/seed/11/300/400",
+    "tags": [
+      "Lập trình Python",
+      "học tập",
+      "tài liệu"
+    ],
+    "downloads": 51,
+    "views": 62,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "lib_xO5O_m41CN1D",
+    "title": "Tài liệu Lập trình C/C++ - Phần 13",
+    "type": "book",
+    "subject": "Lập trình C/C++",
+    "description": "Tài liệu học tập về Lập trình C/C++ dành cho sinh viên",
+    "author": "Bùi Linh Anh",
+    "url": "https://library.hcmut.edu.vn/resource/zGMd_e9Y8g3X",
+    "thumbnail": "https://picsum.photos/seed/12/300/400",
+    "tags": [
+      "Lập trình C/C++",
+      "học tập",
+      "tài liệu"
+    ],
+    "downloads": 383,
+    "views": 109,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "lib_dWczQxHV23TL",
+    "title": "Tài liệu Tiếng Anh - Phần 14",
+    "type": "document",
+    "subject": "Tiếng Anh",
+    "description": "Tài liệu học tập về Tiếng Anh dành cho sinh viên",
+    "author": "Hoàng Khánh Thị",
+    "url": "https://library.hcmut.edu.vn/resource/R_VG3PS5xbOn",
+    "thumbnail": "https://picsum.photos/seed/13/300/400",
+    "tags": [
+      "Tiếng Anh",
+      "học tập",
+      "tài liệu"
+    ],
+    "downloads": 487,
+    "views": 97,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "lib_3Rn28XBI2BVU",
+    "title": "Tài liệu Mạng máy tính - Phần 15",
+    "type": "video",
+    "subject": "Mạng máy tính",
+    "description": "Tài liệu học tập về Mạng máy tính dành cho sinh viên",
+    "author": "Phan Giang Hữu",
+    "url": "https://library.hcmut.edu.vn/resource/ARHjtaj3IZXs",
+    "thumbnail": "https://picsum.photos/seed/14/300/400",
+    "tags": [
+      "Mạng máy tính",
+      "học tập",
+      "tài liệu"
+    ],
+    "downloads": 145,
+    "views": 831,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "lib_cPvXtE274xL7",
+    "title": "Tài liệu Giải tích - Phần 16",
+    "type": "document",
+    "subject": "Giải tích",
+    "description": "Tài liệu học tập về Giải tích dành cho sinh viên",
+    "author": "Phan Khánh Minh",
+    "url": "https://library.hcmut.edu.vn/resource/QXsMon0Vdmad",
+    "thumbnail": "https://picsum.photos/seed/15/300/400",
+    "tags": [
+      "Giải tích",
+      "học tập",
+      "tài liệu"
+    ],
+    "downloads": 125,
+    "views": 211,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "lib_cvovDjcnqgXM",
+    "title": "Tài liệu Lập trình Python - Phần 17",
+    "type": "document",
+    "subject": "Lập trình Python",
+    "description": "Tài liệu học tập về Lập trình Python dành cho sinh viên",
+    "author": "Nguyễn Hà Hữu",
+    "url": "https://library.hcmut.edu.vn/resource/q6P0Nmhg285J",
+    "thumbnail": "https://picsum.photos/seed/16/300/400",
+    "tags": [
+      "Lập trình Python",
+      "học tập",
+      "tài liệu"
+    ],
+    "downloads": 89,
+    "views": 386,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "lib_qFQWeODaWbFY",
+    "title": "Tài liệu Cấu trúc dữ liệu - Phần 18",
+    "type": "document",
+    "subject": "Cấu trúc dữ liệu",
+    "description": "Tài liệu học tập về Cấu trúc dữ liệu dành cho sinh viên",
+    "author": "Phan Nam Anh",
+    "url": "https://library.hcmut.edu.vn/resource/WgDJaQzEbtdN",
+    "thumbnail": "https://picsum.photos/seed/17/300/400",
+    "tags": [
+      "Cấu trúc dữ liệu",
+      "học tập",
+      "tài liệu"
+    ],
+    "downloads": 284,
+    "views": 954,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "lib_Cqa_FLACpGsR",
+    "title": "Tài liệu Điện tử - Phần 19",
+    "type": "book",
+    "subject": "Điện tử",
+    "description": "Tài liệu học tập về Điện tử dành cho sinh viên",
+    "author": "Đỗ Khánh Phương",
+    "url": "https://library.hcmut.edu.vn/resource/1eyKzpO6_J2O",
+    "thumbnail": "https://picsum.photos/seed/18/300/400",
+    "tags": [
+      "Điện tử",
+      "học tập",
+      "tài liệu"
+    ],
+    "downloads": 138,
+    "views": 968,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "lib_rigfciISEMnX",
+    "title": "Tài liệu Hệ điều hành - Phần 20",
+    "type": "book",
+    "subject": "Hệ điều hành",
+    "description": "Tài liệu học tập về Hệ điều hành dành cho sinh viên",
+    "author": "Đỗ Mai Anh",
+    "url": "https://library.hcmut.edu.vn/resource/b0VvJiqSERcF",
+    "thumbnail": "https://picsum.photos/seed/19/300/400",
+    "tags": [
+      "Hệ điều hành",
+      "học tập",
+      "tài liệu"
+    ],
+    "downloads": 157,
+    "views": 638,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "lib_aczUnNsVG1C5",
+    "title": "Tài liệu Xác suất thống kê - Phần 21",
+    "type": "video",
+    "subject": "Xác suất thống kê",
+    "description": "Tài liệu học tập về Xác suất thống kê dành cho sinh viên",
+    "author": "Đỗ Khánh Văn",
+    "url": "https://library.hcmut.edu.vn/resource/nJpj85ThH_3n",
+    "thumbnail": "https://picsum.photos/seed/20/300/400",
+    "tags": [
+      "Xác suất thống kê",
+      "học tập",
+      "tài liệu"
+    ],
+    "downloads": 359,
+    "views": 105,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "lib_LXete58EUz9h",
+    "title": "Tài liệu Lập trình Python - Phần 22",
+    "type": "document",
+    "subject": "Lập trình Python",
+    "description": "Tài liệu học tập về Lập trình Python dành cho sinh viên",
+    "author": "Phan Cường Anh",
+    "url": "https://library.hcmut.edu.vn/resource/zJ3_hDM2RCCU",
+    "thumbnail": "https://picsum.photos/seed/21/300/400",
+    "tags": [
+      "Lập trình Python",
+      "học tập",
+      "tài liệu"
+    ],
+    "downloads": 387,
+    "views": 530,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "lib_s34W_WfZl-qE",
+    "title": "Tài liệu Toán cao cấp - Phần 23",
+    "type": "document",
+    "subject": "Toán cao cấp",
+    "description": "Tài liệu học tập về Toán cao cấp dành cho sinh viên",
+    "author": "Hoàng Khánh Hương",
+    "url": "https://library.hcmut.edu.vn/resource/14GTB0qX5E93",
+    "thumbnail": "https://picsum.photos/seed/22/300/400",
+    "tags": [
+      "Toán cao cấp",
+      "học tập",
+      "tài liệu"
+    ],
+    "downloads": 157,
+    "views": 723,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "lib_1k3dtzzpaJuW",
+    "title": "Tài liệu Xác suất thống kê - Phần 24",
+    "type": "book",
+    "subject": "Xác suất thống kê",
+    "description": "Tài liệu học tập về Xác suất thống kê dành cho sinh viên",
+    "author": "Hoàng Cường Lan",
+    "url": "https://library.hcmut.edu.vn/resource/44DAAEOFlwfE",
+    "thumbnail": "https://picsum.photos/seed/23/300/400",
+    "tags": [
+      "Xác suất thống kê",
+      "học tập",
+      "tài liệu"
+    ],
+    "downloads": 348,
+    "views": 786,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "lib_qYjew0Kzk6Kp",
+    "title": "Tài liệu Mạng máy tính - Phần 25",
+    "type": "video",
+    "subject": "Mạng máy tính",
+    "description": "Tài liệu học tập về Mạng máy tính dành cho sinh viên",
+    "author": "Phan Nam Văn",
+    "url": "https://library.hcmut.edu.vn/resource/V45oTwoil94G",
+    "thumbnail": "https://picsum.photos/seed/24/300/400",
+    "tags": [
+      "Mạng máy tính",
+      "học tập",
+      "tài liệu"
+    ],
+    "downloads": 23,
+    "views": 456,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "lib_kAF6aItWm4r0",
+    "title": "Tài liệu Đại số tuyến tính - Phần 26",
+    "type": "video",
+    "subject": "Đại số tuyến tính",
+    "description": "Tài liệu học tập về Đại số tuyến tính dành cho sinh viên",
+    "author": "Đỗ Bảo Phương",
+    "url": "https://library.hcmut.edu.vn/resource/Cch5oMJn-9_e",
+    "thumbnail": "https://picsum.photos/seed/25/300/400",
+    "tags": [
+      "Đại số tuyến tính",
+      "học tập",
+      "tài liệu"
+    ],
+    "downloads": 447,
+    "views": 330,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "lib_EL_ONJwqaQw7",
+    "title": "Tài liệu Cấu trúc dữ liệu - Phần 27",
+    "type": "article",
+    "subject": "Cấu trúc dữ liệu",
+    "description": "Tài liệu học tập về Cấu trúc dữ liệu dành cho sinh viên",
+    "author": "Phan Linh Lan",
+    "url": "https://library.hcmut.edu.vn/resource/pWwyRNuORQBn",
+    "thumbnail": "https://picsum.photos/seed/26/300/400",
+    "tags": [
+      "Cấu trúc dữ liệu",
+      "học tập",
+      "tài liệu"
+    ],
+    "downloads": 195,
+    "views": 638,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "lib_nVMz4I0IMJc_",
+    "title": "Tài liệu Toán cao cấp - Phần 28",
+    "type": "video",
+    "subject": "Toán cao cấp",
+    "description": "Tài liệu học tập về Toán cao cấp dành cho sinh viên",
+    "author": "Đỗ Cường Phương",
+    "url": "https://library.hcmut.edu.vn/resource/cRqhPoJmTe4_",
+    "thumbnail": "https://picsum.photos/seed/27/300/400",
+    "tags": [
+      "Toán cao cấp",
+      "học tập",
+      "tài liệu"
+    ],
+    "downloads": 65,
+    "views": 155,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "lib_2YDCjrKpTPzr",
+    "title": "Tài liệu Vật lý đại cương - Phần 29",
+    "type": "article",
+    "subject": "Vật lý đại cương",
+    "description": "Tài liệu học tập về Vật lý đại cương dành cho sinh viên",
+    "author": "Vũ Dũng Thị",
+    "url": "https://library.hcmut.edu.vn/resource/RmutPqZ0lJGH",
+    "thumbnail": "https://picsum.photos/seed/28/300/400",
+    "tags": [
+      "Vật lý đại cương",
+      "học tập",
+      "tài liệu"
+    ],
+    "downloads": 410,
+    "views": 986,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "lib_J2ji7nOX1ovk",
+    "title": "Tài liệu Hóa học - Phần 30",
+    "type": "document",
+    "subject": "Hóa học",
+    "description": "Tài liệu học tập về Hóa học dành cho sinh viên",
+    "author": "Phan Mai Phương",
+    "url": "https://library.hcmut.edu.vn/resource/4FOGHd3SptaF",
+    "thumbnail": "https://picsum.photos/seed/29/300/400",
+    "tags": [
+      "Hóa học",
+      "học tập",
+      "tài liệu"
+    ],
+    "downloads": 270,
+    "views": 843,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  }
+]

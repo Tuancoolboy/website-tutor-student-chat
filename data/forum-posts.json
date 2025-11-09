@@ -1,0 +1,456 @@
+[
+  {
+    "id": "post_0Ja6ukqWSZEP",
+    "authorId": "stu_CL7iuJCaQnMJ",
+    "title": "Câu hỏi về Tiếng Anh",
+    "content": "Mình đang gặp khó khăn với Điện tử, mọi người có thể giúp mình được không?",
+    "category": "Hỏi đáp",
+    "tags": [
+      "Đại số tuyến tính",
+      "Lập trình Python",
+      "Cấu trúc dữ liệu"
+    ],
+    "likes": [
+      "tut_SAZDCdEtp4d5",
+      "stu_Dkzw5MfS0lmg",
+      "mgmt_CqdPIMUuPdEo"
+    ],
+    "views": 192,
+    "pinned": false,
+    "locked": false,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "post_N4FJwRBcLnzw",
+    "authorId": "tut_SAZDCdEtp4d5",
+    "title": "Câu hỏi về Hệ điều hành",
+    "content": "Mình đang gặp khó khăn với Cấu trúc dữ liệu, mọi người có thể giúp mình được không?",
+    "category": "Thông báo",
+    "tags": [
+      "Toán cao cấp",
+      "Vật lý đại cương",
+      "Hệ điều hành"
+    ],
+    "likes": [
+      "stu_gWb6m9RpC3XX",
+      "stu_hA8LNUuHA__-",
+      "mgmt_qiHc5mkkHq8z",
+      "tut_FwDE7NJzIH_j",
+      "tut_ui0LfAc9h475",
+      "tut_NrIX8Wa7MS0G",
+      "stu_ohSUYf-rFg4z",
+      "stu_-47UcQuEG1Aq"
+    ],
+    "views": 61,
+    "pinned": false,
+    "locked": false,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "post_aTHNa2IxapZR",
+    "authorId": "stu_jJF_BDn9CPkw",
+    "title": "Câu hỏi về Lập trình C/C++",
+    "content": "Mình đang gặp khó khăn với Lập trình Python, mọi người có thể giúp mình được không?",
+    "category": "Khác",
+    "tags": [
+      "Xác suất thống kê",
+      "Giải tích",
+      "Mạng máy tính"
+    ],
+    "likes": [
+      "tut_ilaeZEbNdND-",
+      "tut_ui0LfAc9h475",
+      "mgmt_eyZVMpmzU94w",
+      "tut_mQjJx63STWcF",
+      "stu_3RhgygZCqKGA",
+      "stu_X9P40VHl5eYS",
+      "tut_SAZDCdEtp4d5"
+    ],
+    "views": 138,
+    "pinned": false,
+    "locked": false,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "post_K-ok8dZYlEGf",
+    "authorId": "stu_KYLbumE4Eed3",
+    "title": "Câu hỏi về Hóa học",
+    "content": "Mình đang gặp khó khăn với Cơ học kỹ thuật, mọi người có thể giúp mình được không?",
+    "category": "Hỏi đáp",
+    "tags": [
+      "Hóa học",
+      "Đại số tuyến tính",
+      "Điện tử"
+    ],
+    "likes": [],
+    "views": 57,
+    "pinned": false,
+    "locked": false,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "post_RjK6raXxSTN-",
+    "authorId": "tut_QAuiJWjIUx57",
+    "title": "Câu hỏi về Hệ điều hành",
+    "content": "Mình đang gặp khó khăn với Hệ điều hành, mọi người có thể giúp mình được không?",
+    "category": "Thông báo",
+    "tags": [
+      "Giải tích"
+    ],
+    "likes": [
+      "tut_FwDE7NJzIH_j",
+      "mgmt_qiHc5mkkHq8z",
+      "tut_oBHJXQvmjPPG",
+      "stu_CL7iuJCaQnMJ",
+      "tut_QAuiJWjIUx57",
+      "stu_X9P40VHl5eYS",
+      "tut_TNes434P5AEZ",
+      "stu_l7BbBkC4tz5Z"
+    ],
+    "views": 41,
+    "pinned": false,
+    "locked": false,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "post_4p1pt7F1hVYa",
+    "authorId": "stu_hA8LNUuHA__-",
+    "title": "Câu hỏi về Điện tử",
+    "content": "Mình đang gặp khó khăn với Lập trình Python, mọi người có thể giúp mình được không?",
+    "category": "Học tập",
+    "tags": [
+      "Giải tích"
+    ],
+    "likes": [
+      "stu_hA8LNUuHA__-",
+      "tut_88EyEpAvElqJ",
+      "stu_CL7iuJCaQnMJ",
+      "mgmt_qiHc5mkkHq8z",
+      "stu_Dkzw5MfS0lmg",
+      "stu_X9P40VHl5eYS"
+    ],
+    "views": 98,
+    "pinned": false,
+    "locked": false,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "post_C6VHJ8A9Zjcm",
+    "authorId": "stu_CL7iuJCaQnMJ",
+    "title": "Câu hỏi về Cấu trúc dữ liệu",
+    "content": "Mình đang gặp khó khăn với Điện tử, mọi người có thể giúp mình được không?",
+    "category": "Hỏi đáp",
+    "tags": [
+      "Đại số tuyến tính",
+      "Hóa học",
+      "Vật lý đại cương"
+    ],
+    "likes": [
+      "stu_1broUDQqc8WB",
+      "stu_NaXGnAYGmzjy",
+      "mgmt_CqdPIMUuPdEo",
+      "mgmt_-MvZFLjvlN7m",
+      "mgmt_ta1l-bVja9Mo",
+      "tut_NrIX8Wa7MS0G",
+      "stu_Dkzw5MfS0lmg",
+      "stu_p8zzUZM5nqnx"
+    ],
+    "views": 71,
+    "pinned": false,
+    "locked": false,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "post_4SvNNDOwI8QC",
+    "authorId": "tut_FwDE7NJzIH_j",
+    "title": "Câu hỏi về Đại số tuyến tính",
+    "content": "Mình đang gặp khó khăn với Hóa học, mọi người có thể giúp mình được không?",
+    "category": "Học tập",
+    "tags": [
+      "Toán cao cấp",
+      "Vật lý đại cương",
+      "Tiếng Anh"
+    ],
+    "likes": [
+      "tut_ui0LfAc9h475"
+    ],
+    "views": 63,
+    "pinned": false,
+    "locked": false,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "post_Cm6rtU-XHV9L",
+    "authorId": "stu_KYLbumE4Eed3",
+    "title": "Câu hỏi về Tiếng Anh",
+    "content": "Mình đang gặp khó khăn với Tiếng Anh, mọi người có thể giúp mình được không?",
+    "category": "Chia sẻ kiến thức",
+    "tags": [
+      "Điện tử",
+      "Mạng máy tính",
+      "Hóa học"
+    ],
+    "likes": [
+      "stu_xyHCrONyfX5i",
+      "tut_rFEAVqof-NxA",
+      "stu_p8zzUZM5nqnx",
+      "stu_Dkzw5MfS0lmg",
+      "tut_x0-B_jiDzDIF",
+      "stu_l7BbBkC4tz5Z"
+    ],
+    "views": 76,
+    "pinned": false,
+    "locked": false,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "post_cobqbKkmGTj2",
+    "authorId": "mgmt_ta1l-bVja9Mo",
+    "title": "Câu hỏi về Lập trình Python",
+    "content": "Mình đang gặp khó khăn với Cơ sở dữ liệu, mọi người có thể giúp mình được không?",
+    "category": "Chia sẻ kiến thức",
+    "tags": [
+      "Toán cao cấp"
+    ],
+    "likes": [],
+    "views": 39,
+    "pinned": false,
+    "locked": false,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "post_-Rt88OGudcdR",
+    "authorId": "mgmt_eyZVMpmzU94w",
+    "title": "Câu hỏi về Lập trình Python",
+    "content": "Mình đang gặp khó khăn với Lập trình C/C++, mọi người có thể giúp mình được không?",
+    "category": "Hỏi đáp",
+    "tags": [
+      "Lập trình Python"
+    ],
+    "likes": [],
+    "views": 183,
+    "pinned": false,
+    "locked": false,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "post_Ed9-GotPIRsX",
+    "authorId": "tut_OI2WdgyNqJEJ",
+    "title": "Câu hỏi về Cơ sở dữ liệu",
+    "content": "Mình đang gặp khó khăn với Điện tử, mọi người có thể giúp mình được không?",
+    "category": "Hỏi đáp",
+    "tags": [
+      "Cơ học kỹ thuật",
+      "Vật lý đại cương",
+      "Điện tử"
+    ],
+    "likes": [],
+    "views": 71,
+    "pinned": false,
+    "locked": false,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "post_956ixqBiL72R",
+    "authorId": "stu_Dkzw5MfS0lmg",
+    "title": "Câu hỏi về Xác suất thống kê",
+    "content": "Mình đang gặp khó khăn với Xác suất thống kê, mọi người có thể giúp mình được không?",
+    "category": "Thông báo",
+    "tags": [
+      "Lập trình Python",
+      "Xác suất thống kê"
+    ],
+    "likes": [
+      "stu_ohSUYf-rFg4z",
+      "stu_X9P40VHl5eYS",
+      "stu_CL7iuJCaQnMJ",
+      "stu_KYLbumE4Eed3",
+      "stu_49hOz0co3idT"
+    ],
+    "views": 174,
+    "pinned": false,
+    "locked": false,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "post_aWinsWw9OlKW",
+    "authorId": "stu_-47UcQuEG1Aq",
+    "title": "Câu hỏi về Hóa học",
+    "content": "Mình đang gặp khó khăn với Giải tích, mọi người có thể giúp mình được không?",
+    "category": "Khác",
+    "tags": [
+      "Tiếng Anh",
+      "Giải tích"
+    ],
+    "likes": [
+      "stu_l7BbBkC4tz5Z"
+    ],
+    "views": 17,
+    "pinned": false,
+    "locked": false,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "post_cd8XGZUHQiT5",
+    "authorId": "stu_49hOz0co3idT",
+    "title": "Câu hỏi về Lập trình Python",
+    "content": "Mình đang gặp khó khăn với Cơ học kỹ thuật, mọi người có thể giúp mình được không?",
+    "category": "Chia sẻ kiến thức",
+    "tags": [
+      "Điện tử",
+      "Mạng máy tính"
+    ],
+    "likes": [
+      "stu_xyHCrONyfX5i",
+      "stu_p8zzUZM5nqnx",
+      "tut_mQjJx63STWcF",
+      "mgmt_eyZVMpmzU94w",
+      "stu_aMaHQ9JgW5pM",
+      "tut_oBHJXQvmjPPG",
+      "stu_CL7iuJCaQnMJ",
+      "stu_hA8LNUuHA__-"
+    ],
+    "views": 44,
+    "pinned": true,
+    "locked": false,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "post_2R-HwQkZXQco",
+    "authorId": "stu_KYLbumE4Eed3",
+    "title": "Câu hỏi về Toán cao cấp",
+    "content": "Mình đang gặp khó khăn với Cơ sở dữ liệu, mọi người có thể giúp mình được không?",
+    "category": "Thông báo",
+    "tags": [
+      "Hệ điều hành",
+      "Điện tử",
+      "Cơ sở dữ liệu"
+    ],
+    "likes": [
+      "stu_RATGmPd-z7u8",
+      "stu_ohSUYf-rFg4z"
+    ],
+    "views": 44,
+    "pinned": false,
+    "locked": false,
+    "createdAt": "2025-11-06T07:51:29.186Z",
+    "updatedAt": "2025-11-06T07:51:29.186Z"
+  },
+  {
+    "id": "post_j15mcbbV16xS",
+    "authorId": "stu_lRx6lob9sDDG",
+    "title": "Câu hỏi về Giải tích",
+    "content": "Mình đang gặp khó khăn với Lập trình Python, mọi người có thể giúp mình được không?",
+    "category": "Học tập",
+    "tags": [
+      "Toán cao cấp"
+    ],
+    "likes": [
+      "tut_0ri_8fMUaMuu",
+      "stu_hA8LNUuHA__-",
+      "tut_QAuiJWjIUx57",
+      "stu_xyHCrONyfX5i",
+      "mgmt_eyZVMpmzU94w",
+      "stu_KYLbumE4Eed3",
+      "tut_oBHJXQvmjPPG",
+      "mgmt_CqdPIMUuPdEo",
+      "tut_ilaeZEbNdND-",
+      "tut_NrIX8Wa7MS0G"
+    ],
+    "views": 37,
+    "pinned": true,
+    "locked": false,
+    "createdAt": "2025-11-06T07:51:29.187Z",
+    "updatedAt": "2025-11-06T07:51:29.187Z"
+  },
+  {
+    "id": "post_ADv-HIBEdVBI",
+    "authorId": "stu_RATGmPd-z7u8",
+    "title": "Câu hỏi về Hệ điều hành",
+    "content": "Mình đang gặp khó khăn với Mạng máy tính, mọi người có thể giúp mình được không?",
+    "category": "Hỏi đáp",
+    "tags": [
+      "Xác suất thống kê"
+    ],
+    "likes": [
+      "tut_OI2WdgyNqJEJ",
+      "stu_Dkzw5MfS0lmg",
+      "stu_ohSUYf-rFg4z",
+      "stu_49hOz0co3idT",
+      "stu_aMaHQ9JgW5pM"
+    ],
+    "views": 74,
+    "pinned": false,
+    "locked": false,
+    "createdAt": "2025-11-06T07:51:29.187Z",
+    "updatedAt": "2025-11-06T07:51:29.187Z"
+  },
+  {
+    "id": "post_x3oTcKV_iJ_r",
+    "authorId": "stu_aMaHQ9JgW5pM",
+    "title": "Câu hỏi về Hóa học",
+    "content": "Mình đang gặp khó khăn với Lập trình C/C++, mọi người có thể giúp mình được không?",
+    "category": "Thông báo",
+    "tags": [
+      "Lập trình Python",
+      "Lập trình C/C++",
+      "Cơ học kỹ thuật"
+    ],
+    "likes": [
+      "tut_SAZDCdEtp4d5",
+      "stu_CL7iuJCaQnMJ",
+      "stu_Dkzw5MfS0lmg",
+      "stu_-47UcQuEG1Aq",
+      "stu_gWb6m9RpC3XX",
+      "mgmt_eyZVMpmzU94w",
+      "tut_88EyEpAvElqJ",
+      "stu_X9P40VHl5eYS",
+      "mgmt_qiHc5mkkHq8z"
+    ],
+    "views": 199,
+    "pinned": false,
+    "locked": false,
+    "createdAt": "2025-11-06T07:51:29.187Z",
+    "updatedAt": "2025-11-06T07:51:29.187Z"
+  },
+  {
+    "id": "post_ONRmsNC5TpTo",
+    "authorId": "stu_NaXGnAYGmzjy",
+    "title": "Câu hỏi về Đại số tuyến tính",
+    "content": "Mình đang gặp khó khăn với Xác suất thống kê, mọi người có thể giúp mình được không?",
+    "category": "Khác",
+    "tags": [
+      "Giải tích",
+      "Cơ học kỹ thuật",
+      "Toán cao cấp"
+    ],
+    "likes": [
+      "stu_Dkzw5MfS0lmg",
+      "tut_rFEAVqof-NxA",
+      "stu_X9P40VHl5eYS",
+      "stu_49hOz0co3idT",
+      "stu_l7BbBkC4tz5Z",
+      "tut_88EyEpAvElqJ"
+    ],
+    "views": 113,
+    "pinned": false,
+    "locked": false,
+    "createdAt": "2025-11-06T07:51:29.187Z",
+    "updatedAt": "2025-11-06T07:51:29.187Z"
+  }
+]
