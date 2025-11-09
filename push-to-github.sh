@@ -10,8 +10,8 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 # Lấy thông tin từ arguments hoặc hỏi user
-REPO_NAME=${1:-"hcmut-tutor"}
-GITHUB_USER=${2:-"tuancoolboy"}
+REPO_NAME=${1:-"Website-tutor-student"}
+GITHUB_USER=${2:-"Tuancoolboy"}
 
 echo -e "${GREEN}🚀 Bắt đầu push project lên GitHub...${NC}"
 echo -e "${YELLOW}Repository: ${GITHUB_USER}/${REPO_NAME}${NC}"

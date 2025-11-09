@@ -2,14 +2,11 @@
 
 ## 📋 Các Bước Thực Hiện
 
-### Bước 1: Tạo Repository trên GitHub
+### Bước 1: Repository GitHub
 
-1. Đăng nhập vào GitHub: https://github.com
-2. Click vào dấu **+** (góc trên bên phải) → **New repository**
-3. Đặt tên repository: `hcmut-tutor` (hoặc tên khác bạn muốn)
-4. Chọn **Public** hoặc **Private**
-5. **KHÔNG** tích vào "Initialize this repository with a README"
-6. Click **Create repository**
+Repository đã được tạo: **Website-tutor-student**
+- URL: https://github.com/Tuancoolboy/Website-tutor-student.git
+- Repository hiện đang empty, sẵn sàng để push code
 
 ### Bước 2: Khởi Tạo Git trong Project
 
@@ -29,9 +26,7 @@ git commit -m "Initial commit: Tutor Support System"
 git branch -M main
 
 # 5. Thêm remote repository
-# Thay 'tuancoolboy' bằng username GitHub của bạn
-# Thay 'hcmut-tutor' bằng tên repository bạn đã tạo
-git remote add origin https://github.com/tuancoolboy/hcmut-tutor.git
+git remote add origin https://github.com/Tuancoolboy/Website-tutor-student.git
 
 # 6. Push code lên GitHub
 git push -u origin main
@@ -136,7 +131,7 @@ npm run seed  # Tạo mock data
 git remote remove origin
 
 # Thêm remote mới
-git remote add origin https://github.com/tuancoolboy/hcmut-tutor.git
+git remote add origin https://github.com/Tuancoolboy/Website-tutor-student.git
 ```
 
 ### Lỗi: "Authentication failed"
