@@ -14,7 +14,8 @@
   - Branch: `main`
   - Root Directory: `/` (để trống)
   - Runtime: `Node`
-  - **Build Command:** Để **TRỐNG** (quan trọng - backend không cần build frontend)
+  - **Build Command:** `npm install` (hoặc để TRỐNG nếu Render cho phép)
+  - **Lưu ý:** KHÔNG dùng `npm run build` (sẽ build frontend và gây lỗi)
   - **Start Command:** `npm run api` ⚠️ QUAN TRỌNG
   - Instance Type: `Free` (hoặc `Starter` $7/tháng)
 
@@ -23,7 +24,7 @@
     - **Key:** `PORT` | **Value:** `3000`
     - **Key:** `NODE_ENV` | **Value:** `production`
     - **Key:** `JWT_SECRET` | **Value:** `your-secret-key-here` (tạo chuỗi ngẫu nhiên mạnh)
-    - **Key:** `FRONTEND_URL` | **Value:** `https://your-vercel-app.vercel.app` (URL Vercel của bạn)
+    - **Key:** `FRONTEND_URL` | **Value:** `https://website-tutor-student-s8rl.vercel.app` (Production URL - KHÔNG dùng Preview URL)
 
 - [ ] **Deploy:**
   - Click "Create Web Service"
@@ -45,7 +46,8 @@
   - Branch: `main`
   - Root Directory: `/` (để trống)
   - Runtime: `Node`
-  - **Build Command:** Để **TRỐNG** (quan trọng - backend không cần build frontend)
+  - **Build Command:** `npm install` (hoặc để TRỐNG nếu Render cho phép)
+  - **Lưu ý:** KHÔNG dùng `npm run build` (sẽ build frontend và gây lỗi)
   - **Start Command:** `npm run ws` ⚠️ QUAN TRỌNG
   - Instance Type: `Free` (hoặc `Starter` $7/tháng)
 
@@ -54,8 +56,8 @@
     - **Key:** `PORT` | **Value:** `3001`
     - **Key:** `NODE_ENV` | **Value:** `production`
     - **Key:** `JWT_SECRET` | **Value:** `your-secret-key-here` (CÙNG giá trị với API Server)
-    - **Key:** `FRONTEND_URL` | **Value:** `https://your-vercel-app.vercel.app` (URL Vercel của bạn)
-    - **Key:** `API_URL` | **Value:** `https://tutor-api.onrender.com` (Domain của API Server từ bước trên)
+    - **Key:** `FRONTEND_URL` | **Value:** `https://website-tutor-student-s8rl.vercel.app` (Production URL - KHÔNG dùng Preview URL)
+    - **Key:** `API_URL` | **Value:** `https://website-tutor-student-s8rl.vercel.app` (Production URL - cùng domain với Frontend)
 
 - [ ] **Deploy:**
   - Click "Create Web Service"
@@ -82,7 +84,7 @@ WebSocket Server URL: https://tutor-websocket.onrender.com
 
 JWT_SECRET: [your-secret-key]
 
-Frontend URL: https://your-vercel-app.vercel.app
+Frontend URL: https://website-tutor-student-s8rl.vercel.app (Production)
 ```
 
 ## 🎯 Next: Update Frontend

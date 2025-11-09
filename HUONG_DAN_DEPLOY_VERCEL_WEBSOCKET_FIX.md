@@ -186,7 +186,8 @@ git push
    - Chọn: `Node`
 
 6. **Build Command:**
-   - Để **TRỐNG** (quan trọng!)
+   - Nhập: `npm install` (hoặc để TRỐNG nếu Render cho phép)
+   - **Lưu ý:** KHÔNG dùng `npm run build` (sẽ build frontend và gây lỗi)
 
 7. **Start Command:**
    - Nhập: `npm run ws` ⚠️ QUAN TRỌNG
@@ -213,11 +214,11 @@ Click **"Add Environment Variable"** và thêm:
 
 4. **FRONTEND_URL:**
    - Key: `FRONTEND_URL`
-   - Value: `https://website-tutor-student.vercel.app` (URL Vercel của bạn)
+   - Value: `https://website-tutor-student-s8rl.vercel.app` (URL Vercel Production - KHÔNG dùng Preview URL)
 
 5. **API_URL:**
    - Key: `API_URL`
-   - Value: `https://website-tutor-student.vercel.app` (URL Vercel API của bạn)
+   - Value: `https://website-tutor-student-s8rl.vercel.app` (URL Vercel Production - cùng domain với Frontend)
 
 ### 3.3. Deploy
 
@@ -279,8 +280,9 @@ export const WEBSOCKET_URL =
 
 #### Variable 1: VITE_API_URL
 - **Key:** `VITE_API_URL`
-- **Value:** `https://website-tutor-student.vercel.app/api`
+- **Value:** `https://website-tutor-student-s8rl.vercel.app/api` (Production URL)
 - **Environment:** Production, Preview, Development
+- **Lưu ý:** Dùng Production URL (không dùng Preview URL)
 
 #### Variable 2: VITE_WEBSOCKET_URL
 - **Key:** `VITE_WEBSOCKET_URL`
@@ -466,9 +468,9 @@ curl https://tutor-websocket.onrender.com/health
 - ✅ Tổng chi phí: $0 (free tier)
 
 ### URLs:
-- **Frontend:** `https://website-tutor-student.vercel.app`
-- **API:** `https://website-tutor-student.vercel.app/api`
-- **WebSocket:** `https://tutor-websocket.onrender.com`
+- **Frontend:** `https://website-tutor-student-s8rl.vercel.app` (Production)
+- **API:** `https://website-tutor-student-s8rl.vercel.app/api` (Production)
+- **WebSocket:** `https://tutor-websocket.onrender.com` (Render - cập nhật sau khi deploy)
 
 ## 📚 Tài Liệu Tham Khảo
 

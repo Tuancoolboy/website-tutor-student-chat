@@ -33,7 +33,7 @@ export const API_BASE_URL =
 export const WEBSOCKET_URL = 
   getEnvVar('VITE_WEBSOCKET_URL') ||
   (isProduction
-    ? 'https://tutor-websocket.onrender.com'  // Render WebSocket URL (cập nhật sau khi deploy)
+    ? 'https://website-tutor-student-1.onrender.com'  // Render WebSocket URL
     : 'http://localhost:3001'  // Local WebSocket server
   );
 
