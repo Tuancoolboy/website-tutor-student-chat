@@ -42,7 +42,7 @@ Nếu GitHub yêu cầu xác thực:
 3. Chọn quyền: `repo` (full control of private repositories)
 4. Copy token
 5. Khi push, dùng token thay vì password:
-   - Username: `tuancoolboy`
+   - Username: `Tuancoolboy`
    - Password: `[paste token here]`
 
 **Cách 2: SSH Key**
@@ -57,7 +57,7 @@ cat ~/.ssh/id_ed25519.pub
 # Settings → SSH and GPG keys → New SSH key
 
 # Thay đổi remote URL sang SSH
-git remote set-url origin git@github.com:tuancoolboy/hcmut-tutor.git
+git remote set-url origin git@github.com:Tuancoolboy/Website-tutor-student.git
 ```
 
 ## 🔒 Files Nhạy Cảm (Đã được bỏ qua trong .gitignore)
@@ -117,8 +117,8 @@ git remote -v
 
 ### Clone Repository (Cho Người Khác)
 ```bash
-git clone https://github.com/tuancoolboy/hcmut-tutor.git
-cd hcmut-tutor
+git clone https://github.com/Tuancoolboy/Website-tutor-student.git
+cd Website-tutor-student
 npm install
 npm run seed  # Tạo mock data
 ```
@@ -170,7 +170,7 @@ git remote add origin https://github.com/Tuancoolboy/Website-tutor-student.git
 ## 🎯 Sau Khi Push
 
 1. **Kiểm tra trên GitHub:**
-   - Vào repository: `https://github.com/tuancoolboy/hcmut-tutor`
+   - Vào repository: `https://github.com/Tuancoolboy/Website-tutor-student`
    - Xem code đã được push chưa
    - Kiểm tra README.md (nếu có)
 
