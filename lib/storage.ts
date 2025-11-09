@@ -11,8 +11,32 @@ export class JSONStorage {
   private dataDir: string;
 
   constructor(useBlob = false) {
-    this.useBlob = useBlob && !!process.env.BLOB_READ_WRITE_TOKEN;
     this.dataDir = join(process.cwd(), 'data');
+    
+    // On Vercel, file system is read-only, so we MUST use Blob Storage
+    // If useBlob is true but no token, we cannot fallback to local (will fail on Vercel)
+    if (useBlob) {
+      if (!process.env.BLOB_READ_WRITE_TOKEN) {
+        if (process.env.VERCEL) {
+          // On Vercel, we MUST have token - cannot fallback to local
+          throw new Error(
+            'BLOB_READ_WRITE_TOKEN is required on Vercel. ' +
+            'File system is read-only. ' +
+            'Please set BLOB_READ_WRITE_TOKEN in Vercel environment variables. ' +
+            'See: https://vercel.com/docs/storage/vercel-blob'
+          );
+        } else {
+          // Not on Vercel, warn but allow fallback to local
+          console.warn('⚠️ WARNING: Blob Storage requested but BLOB_READ_WRITE_TOKEN is not set!');
+          console.warn('⚠️ Falling back to local file system.');
+          this.useBlob = false;
+        }
+      } else {
+        this.useBlob = true;
+      }
+    } else {
+      this.useBlob = false;
+    }
   }
 
   /**
@@ -268,8 +292,29 @@ export class JSONStorage {
   }
 
   private async writeToLocal<T>(filename: string, data: T[]): Promise<void> {
+    // Check if we're on Vercel (read-only file system)
+    if (process.env.VERCEL) {
+      const error = new Error(`Cannot write to file system on Vercel. File system is read-only. Please set BLOB_READ_WRITE_TOKEN environment variable to use Vercel Blob Storage.`);
+      (error as any).code = 'EROFS';
+      (error as any).syscall = 'open';
+      (error as any).path = join(this.dataDir, filename);
+      throw error;
+    }
+    
     const filepath = join(this.dataDir, filename);
-    await writeFile(filepath, JSON.stringify(data, null, 2), 'utf-8');
+    try {
+      await writeFile(filepath, JSON.stringify(data, null, 2), 'utf-8');
+    } catch (error: any) {
+      // If we get EROFS error, provide helpful message
+      if (error.code === 'EROFS') {
+        const helpfulError = new Error(`Cannot write to file system: ${error.message}. On Vercel, file system is read-only. Please set BLOB_READ_WRITE_TOKEN environment variable to use Vercel Blob Storage.`);
+        (helpfulError as any).code = 'EROFS';
+        (helpfulError as any).syscall = error.syscall;
+        (helpfulError as any).path = error.path;
+        throw helpfulError;
+      }
+      throw error;
+    }
   }
 
   private async readFromBlob<T>(filename: string): Promise<T[]> {
@@ -391,9 +436,29 @@ export class JSONStorage {
 }
 
 // Singleton instance - auto-detect if we should use Blob based on environment
-export const storage = new JSONStorage(
-  process.env.NODE_ENV === 'production' && !!process.env.BLOB_READ_WRITE_TOKEN
-);
+// On Vercel, file system is read-only, so we MUST use Blob Storage
+// Also use Blob if BLOB_READ_WRITE_TOKEN is provided (even in development)
+
+// Determine if we should use Blob Storage
+// On Vercel, file system is read-only - MUST use Blob Storage
+let shouldUseBlob = false;
+
+if (process.env.VERCEL) {
+  // On Vercel, file system is read-only - MUST use Blob Storage
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    // This will be handled in constructor - it will throw error if useBlob=true but no token
+    // But we still need to set shouldUseBlob=true to force Blob usage
+    // The constructor will throw a clear error message
+    shouldUseBlob = true; // Force Blob, constructor will check token and throw if missing
+  } else {
+    shouldUseBlob = true;
+  }
+} else if (process.env.BLOB_READ_WRITE_TOKEN) {
+  // Not on Vercel, but token is provided - use Blob Storage (optional)
+  shouldUseBlob = true;
+}
+
+export const storage = new JSONStorage(shouldUseBlob);
 
 // Helper functions for common operations
 export const createRecord = <T extends { id: string }>(
