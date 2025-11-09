@@ -81,12 +81,18 @@ const app = express();
 // See ws-server.ts for the WebSocket server implementation
 
 // Middleware
-app.use(cors({
-  origin: process.env.FRONTEND_URL || (process.env.NODE_ENV === 'production' ? '*' : config.frontend.url),
+// CORS configuration - allow all origins in production (Vercel)
+// In development, use config.frontend.url
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || (process.env.NODE_ENV === 'production' || process.env.VERCEL ? '*' : config.frontend.url),
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Content-Length', 'Content-Type'],
+  optionsSuccessStatus: 200 // Some legacy browsers (IE11, various SmartTVs) choke on 204
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

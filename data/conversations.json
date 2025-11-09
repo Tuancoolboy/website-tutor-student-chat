@@ -311,21 +311,24 @@
       "tut_NrIX8Wa7MS0G"
     ],
     "unreadCount": {
-      "stu_p8zzUZM5nqnx": 3,
+      "stu_p8zzUZM5nqnx": 4,
       "tut_NrIX8Wa7MS0G": 0
     },
     "createdAt": "2025-11-09T13:48:16.252Z",
-    "updatedAt": "2025-11-09T13:49:15.973Z",
+    "updatedAt": "2025-11-09T16:32:38.963Z",
     "lastMessage": {
-      "id": "msg_LS5O3XsM6OId",
+      "id": "msg_mcziqTL_N9xC",
       "conversationId": "conv_sNWNhdj65saS",
       "senderId": "tut_NrIX8Wa7MS0G",
       "receiverId": "stu_p8zzUZM5nqnx",
-      "content": "cll",
+      "content": "lô",
       "type": "text",
       "read": false,
-      "createdAt": "2025-11-09T13:49:15.968Z"
-    }
+      "createdAt": "2025-11-09T16:32:19.320Z"
+    },
+    "hiddenFor": [
+      "tut_NrIX8Wa7MS0G"
+    ]
   },
   {
     "id": "conv_18_O6iBowSYf",
@@ -348,6 +351,29 @@
       "type": "text",
       "read": false,
       "createdAt": "2025-11-09T13:48:33.207Z"
+    }
+  },
+  {
+    "id": "conv_0r4FVG5mlb_B",
+    "participants": [
+      "tut_NrIX8Wa7MS0G",
+      "tut_TNes434P5AEZ"
+    ],
+    "unreadCount": {
+      "tut_NrIX8Wa7MS0G": 0,
+      "tut_TNes434P5AEZ": 1
+    },
+    "createdAt": "2025-11-09T16:33:05.425Z",
+    "updatedAt": "2025-11-09T16:33:09.473Z",
+    "lastMessage": {
+      "id": "msg_6Mmdz1rRFqzf",
+      "conversationId": "conv_0r4FVG5mlb_B",
+      "senderId": "tut_NrIX8Wa7MS0G",
+      "receiverId": "tut_TNes434P5AEZ",
+      "content": "cm",
+      "type": "text",
+      "read": false,
+      "createdAt": "2025-11-09T16:33:09.470Z"
     }
   }
 ]

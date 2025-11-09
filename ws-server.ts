@@ -77,7 +77,7 @@ io.use((socket, next) => {
     }
 
     console.log('[Socket.io] ✅ Token verified successfully. userId:', payload.userId);
-    
+
     // Attach user info to socket
     socket.data.userId = payload.userId;
     socket.data.userRole = payload.role;

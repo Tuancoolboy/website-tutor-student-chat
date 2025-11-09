@@ -63,6 +63,10 @@ const Messages: React.FC = () => {
   const shouldAutoScrollRef = useRef(true)
   const isUserScrollingRef = useRef(false)
   const previousConversationIdRef = useRef<string | null>(null)
+  const isLoadingActiveUsersRef = useRef(false)
+  const activeUsersIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const activeUsersTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const lastOnlineUsersRef = useRef<Set<string>>(new Set())
 
   // Online Status Hook - Track which users are online via WebSocket
   const { onlineUsers, isUserOnline, isConnected: isWebSocketConnected } = useOnlineStatus({ enabled: true })
@@ -200,12 +204,34 @@ const Messages: React.FC = () => {
   }, [currentUser])
 
   // Load active users for "Active Now" section
+  // Fixed: Prevent infinite loop by using refs and debouncing
   useEffect(() => {
+    // Clear any existing timeouts/intervals
+    if (activeUsersTimeoutRef.current) {
+      clearTimeout(activeUsersTimeoutRef.current)
+      activeUsersTimeoutRef.current = null
+    }
+    if (activeUsersIntervalRef.current) {
+      clearInterval(activeUsersIntervalRef.current)
+      activeUsersIntervalRef.current = null
+    }
+
     const loadActiveUsers = async () => {
-      if (!currentUser) return
+      // Prevent multiple simultaneous calls
+      if (isLoadingActiveUsersRef.current) {
+        console.log('[Tutor Messages] Active users already loading, skipping...')
+        return
+      }
+      
+      if (!currentUser) {
+        setActiveUsers([])
+        return
+      }
       
       try {
+        isLoadingActiveUsersRef.current = true
         setLoadingActiveUsers(true)
+        
         // Load all users
         const response = await usersAPI.list({ limit: 100 })
         
@@ -256,28 +282,63 @@ const Messages: React.FC = () => {
           .slice(0, 12) // Show top 12 active users
         
         setActiveUsers(activeUsersList)
+        
+        // Update last known online users
+        lastOnlineUsersRef.current = new Set(activeUsersList.map(u => u.id))
       } catch (error) {
         console.error('[Tutor Messages] Failed to load active users:', error)
-        setActiveUsers([])
+        // Don't clear on error to prevent UI flickering
+        // Only clear if this is the first load
+        if (activeUsers.length === 0) {
+          setActiveUsers([])
+        }
       } finally {
         setLoadingActiveUsers(false)
+        isLoadingActiveUsersRef.current = false
       }
     }
     
-    if (currentUser && conversations.length >= 0) {
-      loadActiveUsers()
+    // Check if onlineUsers actually changed
+    const currentOnlineUsersSet = new Set(onlineUsers || [])
+    const onlineUsersChanged = 
+      currentOnlineUsersSet.size !== lastOnlineUsersRef.current.size ||
+      Array.from(currentOnlineUsersSet).some(id => !lastOnlineUsersRef.current.has(id)) ||
+      Array.from(lastOnlineUsersRef.current).some(id => !currentOnlineUsersSet.has(id))
+    
+    // Only load if:
+    // 1. We have currentUser
+    // 2. Online users actually changed (not just a re-render)
+    // 3. Not already loading
+    if (currentUser && (onlineUsersChanged || activeUsers.length === 0)) {
+      // Debounce: wait 1 second before loading to prevent rapid calls
+      activeUsersTimeoutRef.current = setTimeout(() => {
+        if (!isLoadingActiveUsersRef.current) {
+          loadActiveUsers()
+        }
+      }, 1000) // 1 second debounce
     }
     
-    // Auto-refresh active users when onlineUsers changes (real-time updates)
-    // Also refresh every 30 seconds as fallback
-    const interval = setInterval(() => {
-      if (currentUser) {
-        loadActiveUsers()
-      }
-    }, 30000) // Refresh every 30 seconds as fallback
+    // Set up interval for periodic refresh (only if we have currentUser)
+    // Increased to 60 seconds to reduce load
+    if (currentUser) {
+      activeUsersIntervalRef.current = setInterval(() => {
+        if (!isLoadingActiveUsersRef.current) {
+          loadActiveUsers()
+        }
+      }, 60000) // Refresh every 60 seconds
+    }
     
-    return () => clearInterval(interval)
-  }, [currentUser, conversations, onlineUsers, isUserOnline]) // Reload when onlineUsers changes
+    return () => {
+      if (activeUsersTimeoutRef.current) {
+        clearTimeout(activeUsersTimeoutRef.current)
+        activeUsersTimeoutRef.current = null
+      }
+      if (activeUsersIntervalRef.current) {
+        clearInterval(activeUsersIntervalRef.current)
+        activeUsersIntervalRef.current = null
+      }
+    }
+  }, [currentUser, onlineUsers, isUserOnline]) // Removed 'conversations' - it causes infinite loop
 
   // Note: loadHistory is automatically called by useLongPolling hook when conversationId changes
   // No need to call it manually here to avoid duplicate calls
@@ -629,7 +690,7 @@ const Messages: React.FC = () => {
   const handleOpenNewConversation = () => {
     setShowNewConversationModal(true)
     // Always reload users to ensure latest data
-    loadAvailableUsers()
+      loadAvailableUsers()
   }
 
   // Delete conversation (hide for current user only)
@@ -903,7 +964,7 @@ const Messages: React.FC = () => {
               {loadingActiveUsers ? (
                 <div className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} py-4`}>
                   Loading...
-                </div>
+                      </div>
               ) : activeUsers.length > 0 ? (
                 <div 
                   className="flex space-x-4 overflow-x-auto pb-2"
@@ -921,7 +982,7 @@ const Messages: React.FC = () => {
                     whiteSpace: 'nowrap'
                   }}
                 >
-                  {/* Active Users */}
+                {/* Active Users */}
                   {activeUsers.map((user) => {
                     // Find conversation with this user
                     const userConversation = conversations.find((conv: any) => 
@@ -941,30 +1002,30 @@ const Messages: React.FC = () => {
                           }
                         }}
                       >
-                        <div className="relative">
-                          <Avatar
-                            sx={{
-                              width: 64,
-                              height: 64,
+                    <div className="relative">
+                      <Avatar
+                        sx={{
+                          width: 64,
+                          height: 64,
                               bgcolor: getAvatarColor(user.name || user.email),
-                              fontSize: '1.5rem',
-                              fontWeight: 'bold',
+                          fontSize: '1.5rem',
+                          fontWeight: 'bold',
                               border: user.isActive ? '3px solid #10b981' : '3px solid transparent'
-                            }}
-                          >
+                        }}
+                      >
                             {getInitials(user.name || user.email)}
-                          </Avatar>
+                      </Avatar>
                           {user.isActive && (
-                            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white"></div>
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white"></div>
                           )}
-                        </div>
-                        <span className={`text-xs text-center mt-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                    </div>
+                    <span className={`text-xs text-center mt-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                           {(user.name || user.email).split(' ')[0]}
-                        </span>
-                      </div>
+                    </span>
+                  </div>
                     )
                   })}
-                </div>
+              </div>
               ) : (
                 <div className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} py-4`}>
                   No online users
@@ -1124,19 +1185,19 @@ const Messages: React.FC = () => {
                     
                     <div className="flex items-center space-x-2 relative">
                       <div className="relative">
-                        <button 
+                      <button 
                           onClick={(e) => {
                             e.stopPropagation()
                             setShowConversationMenu(showConversationMenu === selectedConversationId ? null : selectedConversationId || null)
                           }}
-                          className={`p-2 rounded-lg ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
-                          style={{
-                            color: theme === 'dark' ? '#ffffff' : '#374151'
-                          }}
+                        className={`p-2 rounded-lg ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+                        style={{
+                          color: theme === 'dark' ? '#ffffff' : '#374151'
+                        }}
                           title="More options"
-                        >
+                      >
                           <MoreHorizIcon className="w-5 h-5" />
-                        </button>
+                      </button>
                         {showConversationMenu === selectedConversationId && (
                           <>
                             <div 
@@ -1149,7 +1210,7 @@ const Messages: React.FC = () => {
                               }`}
                               onClick={(e) => e.stopPropagation()}
                             >
-                              <button
+                      <button 
                                 onClick={() => {
                                   if (selectedConversationId) {
                                     handleDeleteConversation(selectedConversationId)
@@ -1158,10 +1219,10 @@ const Messages: React.FC = () => {
                                 className={`w-full px-4 py-3 text-left flex items-center space-x-2 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors ${
                                   theme === 'dark' ? 'text-red-400' : 'text-red-600'
                                 }`}
-                              >
+                      >
                                 <DeleteIcon className="w-4 h-4" />
                                 <span>Delete</span>
-                              </button>
+                      </button>
                             </div>
                           </>
                         )}
@@ -1385,30 +1446,30 @@ const Messages: React.FC = () => {
                   .slice(0, 3) // Only show top 3 most recent
                   .map((contact, index) => (
                     <div key={contact.id || index} className="flex items-center">
-                      <Avatar
-                        sx={{
-                          width: 32,
-                          height: 32,
-                          bgcolor: getAvatarColor(contact.name),
-                          fontSize: '0.875rem',
-                          fontWeight: 'bold'
-                        }}
-                      >
+                    <Avatar
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        bgcolor: getAvatarColor(contact.name),
+                        fontSize: '0.875rem',
+                        fontWeight: 'bold'
+                      }}
+                    >
                         {contact.avatar || getInitials(contact.name)}
-                      </Avatar>
-                      <div className="flex-1 ml-3">
-                        <p className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                    </Avatar>
+                    <div className="flex-1 ml-3">
+                      <p className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                           {contact.name || 'Unknown'}
-                        </p>
-                        <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                      </p>
+                      <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                           {contact.subject || 'General'}
-                        </p>
-                      </div>
-                      {contact.online && (
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      )}
+                      </p>
                     </div>
-                  ))}
+                    {contact.online && (
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -1583,32 +1644,32 @@ const Messages: React.FC = () => {
                         )
                         
                         return (
-                          <div
-                            key={user.id}
-                            onClick={() => !creatingConversation && handleCreateConversation(user.id)}
-                            className={`p-3 mb-2 rounded-lg cursor-pointer transition-colors ${
-                              theme === 'dark' 
-                                ? 'hover:bg-gray-700' 
-                                : 'hover:bg-gray-100'
-                            } ${creatingConversation ? 'opacity-50 cursor-not-allowed' : ''}`}
-                          >
-                            <div className="flex items-center space-x-3">
-                              <Avatar
-                                sx={{
-                                  width: 40,
-                                  height: 40,
-                                  bgcolor: getAvatarColor(user.name || user.email),
-                                  fontSize: '1rem',
-                                  fontWeight: 'bold'
-                                }}
-                              >
-                                {getInitials(user.name || user.email)}
-                              </Avatar>
-                              <div className="flex-1">
+                        <div
+                          key={user.id}
+                          onClick={() => !creatingConversation && handleCreateConversation(user.id)}
+                          className={`p-3 mb-2 rounded-lg cursor-pointer transition-colors ${
+                            theme === 'dark' 
+                              ? 'hover:bg-gray-700' 
+                              : 'hover:bg-gray-100'
+                          } ${creatingConversation ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <Avatar
+                              sx={{
+                                width: 40,
+                                height: 40,
+                                bgcolor: getAvatarColor(user.name || user.email),
+                                fontSize: '1rem',
+                                fontWeight: 'bold'
+                              }}
+                            >
+                              {getInitials(user.name || user.email)}
+                            </Avatar>
+                            <div className="flex-1">
                                 <div className="flex items-center gap-2">
-                                  <h4 className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                                    {user.name || user.email}
-                                  </h4>
+                              <h4 className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                {user.name || user.email}
+                              </h4>
                                   {user.role && (
                                     <span className={`px-2 py-0.5 text-xs rounded-full ${
                                       user.role === 'tutor' 
@@ -1628,15 +1689,15 @@ const Messages: React.FC = () => {
                                     </span>
                                   )}
                                 </div>
-                                <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                                  {user.email}
-                                </p>
-                              </div>
-                              {creatingConversation && (
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
-                              )}
+                              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                                {user.email}
+                              </p>
                             </div>
+                            {creatingConversation && (
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                            )}
                           </div>
+                        </div>
                         )
                       })}
                     {availableUsers.filter((user: any) => 

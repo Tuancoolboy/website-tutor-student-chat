@@ -264,18 +264,52 @@ export function useLongPolling({
         : `${window.location.origin}${API_BASE_URL}`;
       const url = `${baseUrl}/conversations/${conversationId}/messages`;
 
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ content, type, fileUrl })
+      console.log('[useLongPolling] Sending message:', {
+        url,
+        conversationId,
+        content: content.substring(0, 50) + '...',
+        baseUrl,
+        API_BASE_URL
       });
 
+      let response: Response;
+      try {
+        response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ content, type, fileUrl })
+        });
+      } catch (fetchError: any) {
+        console.error('[useLongPolling] Fetch error:', fetchError);
+        // Network error - provide more helpful error message
+        if (fetchError.message === 'Failed to fetch' || fetchError.name === 'TypeError') {
+          throw new Error(`Cannot connect to server. Please check:
+1. API server is running
+2. URL is correct: ${url}
+3. CORS is configured properly
+4. Network connection is stable`);
+        }
+        throw fetchError;
+      }
+
+      console.log('[useLongPolling] Response status:', response.status, response.statusText);
+
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to send message');
+        let errorMessage = `Failed to send message: ${response.status} ${response.statusText}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorData.message || errorMessage;
+          console.error('[useLongPolling] Error response:', errorData);
+        } catch (e) {
+          // Response is not JSON, get text
+          const errorText = await response.text();
+          console.error('[useLongPolling] Error response text:', errorText);
+          errorMessage = errorText || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -308,6 +342,11 @@ export function useLongPolling({
       return data;
     } catch (error: any) {
       console.error('[useLongPolling] Send message error:', error);
+      console.error('[useLongPolling] Error details:', {
+        message: error.message,
+        name: error.name,
+        stack: error.stack
+      });
       throw error;
     }
   }, [conversationId]);
