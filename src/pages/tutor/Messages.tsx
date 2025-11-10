@@ -144,7 +144,22 @@ const Messages: React.FC = () => {
         
         const response = await authAPI.getMe()
         if (response.success && response.data) {
-          setCurrentUser(response.data)
+          const user = response.data
+          // Kiểm tra role - chỉ cho phép tutor truy cập
+          if (user.role !== 'tutor') {
+            console.log(`User role is ${user.role}, redirecting to appropriate dashboard`)
+            setIsCheckingAuth(false)
+            // Redirect về dashboard tương ứng với role
+            if (user.role === 'student') {
+              setTimeout(() => navigate('/student'), 100)
+            } else if (user.role === 'management') {
+              setTimeout(() => navigate('/management'), 100)
+            } else {
+              setTimeout(() => navigate('/login'), 100)
+            }
+            return
+          }
+          setCurrentUser(user)
           setIsCheckingAuth(false)
         } else {
           console.log('Invalid token, redirecting to login')
