@@ -546,34 +546,6 @@ const Messages: React.FC = () => {
   }
 
 
-  // Format conversation for display - use usersRef to avoid dependency issues
-  const formatConversation = useCallback((conversation: any) => {
-    const currentUserId = currentUser?.userId || currentUser?.id || ''
-    const otherId = conversation.participants?.find((id: string) => id !== currentUserId)
-    const otherUser = otherId ? usersRef.current[otherId] : null
-    const lastMessage = conversation.lastMessage
-    const unreadCount = conversation.unreadCount?.[currentUserId] || 0
-    
-    // Get other participant ID even if user info not loaded yet
-    const displayName = otherUser?.name || otherUser?.email || `User ${otherId?.slice(0, 8) || 'Unknown'}`
-    
-    return {
-      id: conversation.id,
-      name: displayName,
-      type: otherUser?.role || 'user',
-      lastMessage: lastMessage?.content || 'No messages yet',
-      time: lastMessage?.createdAt 
-        ? formatDistanceToNow(new Date(lastMessage.createdAt), { addSuffix: true })
-        : 'No messages',
-      unread: unreadCount,
-      online: false, // TODO: Implement online status
-      avatar: getInitials(displayName),
-      subject: otherUser?.subjects?.[0] || otherUser?.preferredSubjects?.[0] || 'General',
-      otherUser,
-      otherId
-    }
-  }, [currentUser])
-
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <DashboardIcon />, path: '/tutor' },
     { id: 'availability', label: 'Set Availability', icon: <ScheduleIcon />, path: '/tutor/availability' },
@@ -584,11 +556,37 @@ const Messages: React.FC = () => {
   ]
 
   // Memoize formatted conversations to avoid re-computing on every render
-  // Include users in dependency to re-run when users change, but formatConversation uses usersRef
+  // Format conversation inline to avoid useCallback dependency issues
   const formattedConversations = useMemo(() => {
     if (!currentUser) return []
-    return conversations.map(formatConversation)
-  }, [conversations, currentUser, formatConversation, users])
+    const currentUserId = currentUser?.userId || currentUser?.id || ''
+    
+    return conversations.map((conversation: any) => {
+      const otherId = conversation.participants?.find((id: string) => id !== currentUserId)
+      const otherUser = otherId ? usersRef.current[otherId] : null
+      const lastMessage = conversation.lastMessage
+      const unreadCount = conversation.unreadCount?.[currentUserId] || 0
+      
+      // Get other participant ID even if user info not loaded yet
+      const displayName = otherUser?.name || otherUser?.email || `User ${otherId?.slice(0, 8) || 'Unknown'}`
+      
+      return {
+        id: conversation.id,
+        name: displayName,
+        type: otherUser?.role || 'user',
+        lastMessage: lastMessage?.content || 'No messages yet',
+        time: lastMessage?.createdAt 
+          ? formatDistanceToNow(new Date(lastMessage.createdAt), { addSuffix: true })
+          : 'No messages',
+        unread: unreadCount,
+        online: false, // TODO: Implement online status
+        avatar: getInitials(displayName),
+        subject: otherUser?.subjects?.[0] || otherUser?.preferredSubjects?.[0] || 'General',
+        otherUser,
+        otherId
+      }
+    })
+  }, [conversations, currentUser, users])
   
   // Memoize filtered conversations to avoid re-filtering on every render
   const filteredConversations = useMemo(() => {
