@@ -116,9 +116,9 @@ const CreatePost: React.FC = () => {
         return
       }
 
-      // Check file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        alert('Kích thước file không được vượt quá 5MB')
+      // Check file size (max 2KB)
+      if (file.size > 2 * 1024) {
+        alert('Kích thước file không được vượt quá 2KB')
         return
       }
 

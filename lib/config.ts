@@ -55,7 +55,7 @@ export const config = {
 
   // Upload Configuration
   upload: {
-    maxFileSize: 10 * 1024 * 1024, // 10MB
+    maxFileSize: 2 * 1024, // 2KB
     allowedTypes: ['image/jpeg', 'image/png', 'application/pdf', 'video/mp4']
   }
 };

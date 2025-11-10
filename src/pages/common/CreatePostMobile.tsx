@@ -105,8 +105,8 @@ const CreatePostMobile: React.FC = () => {
         return
       }
 
-      if (file.size > 5 * 1024 * 1024) {
-        alert('Kích thước file không được vượt quá 5MB')
+      if (file.size > 2 * 1024) {
+        alert('Kích thước file không được vượt quá 2KB')
         return
       }
 
@@ -325,7 +325,7 @@ const CreatePostMobile: React.FC = () => {
                   <span className="font-semibold">Click để upload</span>
                 </p>
                 <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
-                  PNG, JPG, GIF (Tối đa 5MB)
+                  PNG, JPG, GIF (Tối đa 2KB)
                 </p>
               </div>
               <input

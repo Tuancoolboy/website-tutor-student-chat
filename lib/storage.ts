@@ -9,6 +9,8 @@ import { join } from 'path';
 export class JSONStorage {
   private useBlob: boolean;
   private dataDir: string;
+  // Cache blob URLs to avoid list() operations (Advanced Operations are limited to 2k/month)
+  private blobUrlCache: Map<string, string> = new Map();
 
   constructor(useBlob = false) {
     this.dataDir = join(process.cwd(), 'data');
@@ -335,132 +337,96 @@ export class JSONStorage {
 
       // Try data/${filename} first (preferred location)
       const blobPath = `data/${filename}`;
-      console.log(`[Blob Storage] Attempting to read ${filename} from ${blobPath}`);
       
-      // List blobs with exact path match
-      let blobs: any[];
-      try {
-        const result = await list({ prefix: blobPath });
-        blobs = result.blobs;
-        console.log(`[Blob Storage] Found ${blobs.length} blobs with prefix ${blobPath}`);
-      } catch (listError: any) {
-        console.error(`[Blob Storage] Error listing blobs for ${blobPath}:`, listError.message);
-        throw new Error(`Failed to list blobs: ${listError.message}. Please verify BLOB_READ_WRITE_TOKEN is correct.`);
-      }
+      // Check cache first to avoid list() operations
+      let blobUrl = this.blobUrlCache.get(blobPath);
       
-      // Find exact match (not just prefix match)
-      const targetBlob = blobs.find(blob => blob.pathname === blobPath);
-      
-      if (targetBlob) {
-        console.log(`[Blob Storage] Found blob at ${blobPath}, URL: ${targetBlob.url}`);
-        // Fetch blob with token in Authorization header to avoid 403 Forbidden
-        // Public blobs should work, but adding token ensures access
-        let response: Response;
+      if (!blobUrl) {
+        // URL not in cache, need to find it using list() (Advanced Operation - use sparingly)
+        // Only do this once per file, then cache the URL
+        console.log(`[Blob Storage] URL not in cache, finding blob for ${blobPath}...`);
         try {
-          const token = process.env.BLOB_READ_WRITE_TOKEN;
-          response = await fetch(targetBlob.url, {
-            headers: token ? {
-              'Authorization': `Bearer ${token}`
-            } : {}
-          });
-        } catch (fetchError: any) {
-          console.error(`[Blob Storage] Error fetching blob from ${targetBlob.url}:`, fetchError.message);
-          throw new Error(`Failed to fetch blob: ${fetchError.message}`);
-        }
-        
-        // Check if response is OK
-        if (!response.ok) {
-          const errorText = await response.text().catch(() => 'Unknown error');
-          console.error(`[Blob Storage] Failed to fetch blob: ${response.status} ${response.statusText}`, errorText.substring(0, 200));
-          // If 403, suggest checking blob access settings
-          if (response.status === 403) {
-            throw new Error(`403 Forbidden: Blob may not be public or token is invalid. Please verify blob was uploaded with access: 'public' or check BLOB_READ_WRITE_TOKEN.`);
+          const result = await list({ prefix: blobPath });
+          const targetBlob = result.blobs.find(blob => blob.pathname === blobPath);
+          if (targetBlob) {
+            blobUrl = targetBlob.url;
+            this.blobUrlCache.set(blobPath, blobUrl);
+            console.log(`[Blob Storage] Found and cached URL for ${blobPath}`);
           }
-          throw new Error(`Failed to fetch blob: ${response.status} ${response.statusText}. ${errorText.substring(0, 100)}`);
-        }
-        
-        const content = await response.text();
-        
-        // Validate that content is valid JSON (not HTML or error page)
-        const trimmedContent = content.trim();
-        if (!trimmedContent.startsWith('[') && !trimmedContent.startsWith('{')) {
-          console.error(`[Blob Storage] Invalid JSON format for ${blobPath}: content starts with "${trimmedContent.substring(0, 100)}"`);
-          console.error(`[Blob Storage] Content length: ${content.length} bytes`);
-          throw new Error(`Invalid JSON format for ${blobPath}. Content appears to be HTML or error page instead of JSON. Please verify the file was uploaded correctly.`);
-        }
-        
-        try {
-          const parsed = JSON.parse(content);
-          console.log(`[Blob Storage] Successfully read ${filename}, found ${Array.isArray(parsed) ? parsed.length : 'N/A'} items`);
-          return parsed;
-        } catch (parseError: any) {
-          console.error(`[Blob Storage] JSON parse error for ${blobPath}:`, parseError.message);
-          console.error(`[Blob Storage] Content preview: ${trimmedContent.substring(0, 200)}`);
-          throw new Error(`Failed to parse JSON from ${blobPath}: ${parseError.message}`);
-        }
-      }
-      
-      // If not found at data/, try root level (backward compatibility)
-      console.log(`[Blob Storage] Blob not found at ${blobPath}, trying root level...`);
-      let rootBlobs: any[];
-      try {
-        const result = await list({ prefix: filename });
-        rootBlobs = result.blobs;
-      } catch (listError: any) {
-        console.error(`[Blob Storage] Error listing blobs for root ${filename}:`, listError.message);
-        throw new Error(`Failed to list blobs at root level: ${listError.message}`);
-      }
-      
-      const rootBlob = rootBlobs.find(blob => blob.pathname === filename);
-      
-      if (rootBlob) {
-        console.log(`[Blob Storage] Found blob at root level: ${filename}`);
-        // Fetch blob with token in Authorization header
-        let response: Response;
-        try {
-          const token = process.env.BLOB_READ_WRITE_TOKEN;
-          response = await fetch(rootBlob.url, {
-            headers: token ? {
-              'Authorization': `Bearer ${token}`
-            } : {}
-          });
-        } catch (fetchError: any) {
-          console.error(`[Blob Storage] Error fetching blob from root ${rootBlob.url}:`, fetchError.message);
-          throw new Error(`Failed to fetch blob at root level: ${fetchError.message}`);
-        }
-        
-        if (!response.ok) {
-          const errorText = await response.text().catch(() => 'Unknown error');
-          if (response.status === 403) {
-            throw new Error(`403 Forbidden: Blob may not be public or token is invalid. Please verify blob was uploaded with access: 'public'.`);
+        } catch (listError: any) {
+          console.error(`[Blob Storage] Error listing blobs for ${blobPath}:`, listError.message);
+          // Try root level as fallback
+          try {
+            const rootResult = await list({ prefix: filename });
+            const rootBlob = rootResult.blobs.find(blob => blob.pathname === filename);
+            if (rootBlob) {
+              blobUrl = rootBlob.url;
+              this.blobUrlCache.set(filename, blobUrl);
+              console.log(`[Blob Storage] Found and cached URL for ${filename} at root level`);
+            }
+          } catch (rootListError: any) {
+            throw new Error(`Failed to find blob for ${filename}: ${listError.message}`);
           }
-          throw new Error(`Failed to fetch blob: ${response.status} ${response.statusText}`);
         }
-        
-        const content = await response.text();
-        
-        // Validate that content is valid JSON
-        const trimmedContent = content.trim();
-        if (!trimmedContent.startsWith('[') && !trimmedContent.startsWith('{')) {
-          console.error(`[Blob Storage] Invalid JSON format for ${filename} at root: content starts with "${trimmedContent.substring(0, 50)}"`);
-          throw new Error(`Invalid JSON format for ${filename} at root level. Please verify the file was uploaded correctly.`);
-        }
-        
-        try {
-          const parsed = JSON.parse(content);
-          console.log(`[Blob Storage] Successfully read ${filename} from root level, found ${Array.isArray(parsed) ? parsed.length : 'N/A'} items`);
-          return parsed;
-        } catch (parseError: any) {
-          console.error(`[Blob Storage] JSON parse error for ${filename} at root:`, parseError.message);
-          throw new Error(`Failed to parse JSON from ${filename} at root level: ${parseError.message}`);
-        }
+      } else {
+        console.log(`[Blob Storage] Using cached URL for ${blobPath}`);
       }
       
-      // File doesn't exist at either location
-      const errorMsg = `No blob found for ${filename} at ${blobPath} or root level. Please upload the file to Blob Storage.`;
-      console.error(`[Blob Storage] ${errorMsg}`);
-      console.error(`[Blob Storage] Available blobs with prefix 'data/':`, blobs.map(b => b.pathname).join(', '));
-      throw new Error(errorMsg);
+      if (!blobUrl) {
+        throw new Error(`No blob found for ${filename} at ${blobPath} or root level. Please upload the file to Blob Storage.`);
+      }
+      
+      // Fetch blob using cached URL (this doesn't count as Advanced Operation)
+      let response: Response;
+      try {
+        const token = process.env.BLOB_READ_WRITE_TOKEN;
+        response = await fetch(blobUrl, {
+          headers: token ? {
+            'Authorization': `Bearer ${token}`
+          } : {}
+        });
+      } catch (fetchError: any) {
+        // URL might be stale, clear cache and retry once
+        console.warn(`[Blob Storage] Failed to fetch from cached URL, clearing cache for ${blobPath}`);
+        this.blobUrlCache.delete(blobPath);
+        this.blobUrlCache.delete(filename);
+        throw new Error(`Failed to fetch blob: ${fetchError.message}. Cache cleared, will retry on next request.`);
+      }
+      
+      // Check if response is OK
+      if (!response.ok) {
+        // If 404, clear cache and throw error
+        if (response.status === 404) {
+          this.blobUrlCache.delete(blobPath);
+          this.blobUrlCache.delete(filename);
+        }
+        const errorText = await response.text().catch(() => 'Unknown error');
+        console.error(`[Blob Storage] Failed to fetch blob: ${response.status} ${response.statusText}`, errorText.substring(0, 200));
+        if (response.status === 403) {
+          throw new Error(`403 Forbidden: Blob may not be public or token is invalid. Please verify blob was uploaded with access: 'public' or check BLOB_READ_WRITE_TOKEN.`);
+        }
+        throw new Error(`Failed to fetch blob: ${response.status} ${response.statusText}. ${errorText.substring(0, 100)}`);
+      }
+      
+      const content = await response.text();
+      
+      // Validate that content is valid JSON (not HTML or error page)
+      const trimmedContent = content.trim();
+      if (!trimmedContent.startsWith('[') && !trimmedContent.startsWith('{')) {
+        console.error(`[Blob Storage] Invalid JSON format for ${blobPath}: content starts with "${trimmedContent.substring(0, 100)}"`);
+        console.error(`[Blob Storage] Content length: ${content.length} bytes`);
+        throw new Error(`Invalid JSON format for ${blobPath}. Content appears to be HTML or error page instead of JSON. Please verify the file was uploaded correctly.`);
+      }
+      
+      try {
+        const parsed = JSON.parse(content);
+        console.log(`[Blob Storage] Successfully read ${filename}, found ${Array.isArray(parsed) ? parsed.length : 'N/A'} items`);
+        return parsed;
+      } catch (parseError: any) {
+        console.error(`[Blob Storage] JSON parse error for ${blobPath}:`, parseError.message);
+        console.error(`[Blob Storage] Content preview: ${trimmedContent.substring(0, 200)}`);
+        throw new Error(`Failed to parse JSON from ${blobPath}: ${parseError.message}`);
+      }
     } catch (error: any) {
       console.error(`[Blob Storage] Error reading ${filename}:`, error.message);
       console.error(`[Blob Storage] Error stack:`, error.stack);
@@ -477,26 +443,47 @@ export class JSONStorage {
     // This reduces blob operations from 2 per write to just 1
     const blobPath = `data/${filename}`;
     
-    await put(blobPath, content, {
+    const result = await put(blobPath, content, {
       access: 'public',
       addRandomSuffix: false,
       allowOverwrite: true
     });
+    
+    // Cache the URL after writing to avoid list() on next read
+    if (result.url) {
+      this.blobUrlCache.set(blobPath, result.url);
+      console.log(`[Blob Storage] Cached URL for ${blobPath} after write`);
+    }
   }
 
   /**
    * List all JSON files
-   * Note: This still uses list() but is rarely called
-   * Consider caching or removing if not needed
+   * WARNING: This uses list() which is an Advanced Operation (counts toward 2k/month limit)
+   * Only use this when absolutely necessary. Consider caching the result.
+   * For blob storage, we can't avoid list() here, but this function is rarely called.
    */
   async listFiles(): Promise<string[]> {
     if (this.useBlob) {
-      // Only use list when absolutely necessary (this is an advanced operation)
-      const { blobs } = await list({ prefix: 'data/' });
-      return blobs.map((blob) => blob.pathname.replace('data/', ''));
+      // WARNING: list() is an Advanced Operation - use sparingly
+      // Consider caching results or removing this function if not needed
+      try {
+        const { blobs } = await list({ prefix: 'data/' });
+        return blobs.map((blob) => blob.pathname.replace('data/', ''));
+      } catch (error: any) {
+        console.error('[Blob Storage] Error listing files:', error.message);
+        // Return empty array instead of throwing to avoid breaking the app
+        return [];
+      }
     } else {
-      // Local file listing would go here
-      return [];
+      // Local file listing - read from file system
+      try {
+        const { readdir } = await import('fs/promises');
+        const files = await readdir(this.dataDir);
+        return files.filter(file => file.endsWith('.json'));
+      } catch (error: any) {
+        console.error('[Storage] Error listing local files:', error.message);
+        return [];
+      }
     }
   }
 
@@ -519,21 +506,44 @@ export class JSONStorage {
 
 // Determine if we should use Blob Storage
 // On Vercel, file system is read-only - MUST use Blob Storage
+// On other platforms (Render, Railway, local), can use local file system
 let shouldUseBlob = false;
 
-if (process.env.VERCEL) {
-  // On Vercel, file system is read-only - MUST use Blob Storage
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
-    // This will be handled in constructor - it will throw error if useBlob=true but no token
-    // But we still need to set shouldUseBlob=true to force Blob usage
-    // The constructor will throw a clear error message
-    shouldUseBlob = true; // Force Blob, constructor will check token and throw if missing
-  } else {
-    shouldUseBlob = true;
+// Check if user explicitly wants to use local storage (disable blob)
+const useLocalStorage = process.env.USE_LOCAL_STORAGE === 'true';
+
+if (useLocalStorage) {
+  // User explicitly wants local storage
+  if (process.env.VERCEL) {
+    // On Vercel, cannot use local storage - file system is read-only
+    console.error('[Storage] ERROR: Cannot use local storage on Vercel. File system is read-only.');
+    console.error('[Storage] Please remove USE_LOCAL_STORAGE=true or deploy on Render/Railway instead.');
+    throw new Error('Cannot use local storage on Vercel. File system is read-only. Deploy on Render/Railway instead.');
   }
-} else if (process.env.BLOB_READ_WRITE_TOKEN) {
-  // Not on Vercel, but token is provided - use Blob Storage (optional)
-  shouldUseBlob = true;
+  // Not on Vercel - can use local storage
+  shouldUseBlob = false;
+  console.log('[Storage] Using local file system (blob storage disabled via USE_LOCAL_STORAGE=true)');
+} else {
+  // Auto-detect: use blob if on Vercel or if BLOB_READ_WRITE_TOKEN is provided
+  if (process.env.VERCEL) {
+    // On Vercel, file system is read-only - MUST use Blob Storage
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      // This will be handled in constructor - it will throw error if useBlob=true but no token
+      // But we still need to set shouldUseBlob=true to force Blob usage
+      // The constructor will throw a clear error message
+      shouldUseBlob = true; // Force Blob, constructor will check token and throw if missing
+    } else {
+      shouldUseBlob = true;
+    }
+  } else if (process.env.BLOB_READ_WRITE_TOKEN) {
+    // Not on Vercel, but token is provided - use Blob Storage (optional)
+    shouldUseBlob = true;
+    console.log('[Storage] Using Vercel Blob Storage (BLOB_READ_WRITE_TOKEN found)');
+  } else {
+    // Not on Vercel, no token - use local file system
+    shouldUseBlob = false;
+    console.log('[Storage] Using local file system (no BLOB_READ_WRITE_TOKEN found)');
+  }
 }
 
 export const storage = new JSONStorage(shouldUseBlob);
