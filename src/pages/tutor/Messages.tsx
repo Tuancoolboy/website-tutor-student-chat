@@ -5,8 +5,9 @@ import Button from '../../components/ui/Button'
 import { Avatar } from '@mui/material'
 import { useLongPolling } from '../../hooks/useLongPolling'
 import { useOnlineStatus } from '../../hooks/useOnlineStatus'
-import { conversationsAPI, usersAPI, authAPI, studentsAPI } from '../../lib/api'
+import { conversationsAPI, usersAPI, authAPI, studentsAPI, uploadAPI } from '../../lib/api'
 import { formatDistanceToNow } from 'date-fns'
+import { EmojiPicker } from '../../components/EmojiPicker'
 import {
   Dashboard as DashboardIcon,
   Search as SearchIcon,
@@ -59,6 +60,12 @@ const Messages: React.FC = () => {
   const [activeUsers, setActiveUsers] = useState<any[]>([])
   const [loadingActiveUsers, setLoadingActiveUsers] = useState(false)
   const [showConversationMenu, setShowConversationMenu] = useState<string | null>(null)
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const [uploadingFile, setUploadingFile] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const emojiPickerRef = useRef<HTMLDivElement>(null)
+  const messageInputRef = useRef<HTMLInputElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const previousConversationIdRef = useRef<string | null>(null)
@@ -507,6 +514,23 @@ const Messages: React.FC = () => {
     }
   }, [selectedConversationId]) // ONLY depend on conversationId to avoid re-renders
 
+  // Close emoji picker when clicking outside - MUST be before useMemo hooks
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+        setShowEmojiPicker(false)
+      }
+    }
+
+    if (showEmojiPicker) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showEmojiPicker])
+
   // Helper function to get initials from name
   const getInitials = (name: string | undefined | null) => {
     if (!name || typeof name !== 'string' || name.trim().length === 0) {
@@ -804,15 +828,23 @@ const Messages: React.FC = () => {
   }
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || sending) return
+    if ((!newMessage.trim() && !selectedFile) || sending || uploadingFile) return
     
     // If no conversation selected, we need to create one first
     if (!selectedConversationId) {
       alert('Vui lòng chọn hoặc tạo một cuộc trò chuyện trước khi gửi tin nhắn')
       return
     }
+
+    // If file is selected, upload it first
+    if (selectedFile) {
+      await handleFileUpload()
+      return
+    }
     
     const messageContent = newMessage.trim()
+    if (!messageContent) return
+
     try {
       setSending(true)
       setNewMessage('') // Clear input immediately for better UX
@@ -846,6 +878,75 @@ const Messages: React.FC = () => {
       handleSendMessage()
     }
   }
+
+  const handleEmojiSelect = (emoji: string) => {
+    setNewMessage(prev => prev + emoji)
+    setShowEmojiPicker(false)
+    // Focus input after selecting emoji
+    setTimeout(() => {
+      messageInputRef.current?.focus()
+    }, 0)
+  }
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file size (5MB)
+    const maxSize = 5 * 1024 * 1024
+    if (file.size > maxSize) {
+      alert(`File quá lớn. Kích thước tối đa là 5MB.`)
+      return
+    }
+
+    // Validate file type
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+    if (!allowedTypes.includes(file.type)) {
+      alert(`Loại file không được hỗ trợ. Các loại file được hỗ trợ: PDF, JPG, PNG, GIF, DOC, DOCX`)
+      return
+    }
+
+    setSelectedFile(file)
+  }
+
+  const handleFileUpload = async () => {
+    if (!selectedFile || !selectedConversationId) return
+
+    try {
+      setUploadingFile(true)
+      
+      // Upload file
+      const uploadResponse = await uploadAPI.uploadFile(selectedFile)
+      
+      if (!uploadResponse.success || !uploadResponse.data) {
+        throw new Error(uploadResponse.error || 'Upload failed')
+      }
+
+      const { url, fileName, mimeType } = uploadResponse.data
+
+      // Determine message type
+      const messageType = mimeType.startsWith('image/') ? 'image' : 'file'
+      const messageContent = fileName
+
+      // Send message with file
+      await sendMessage(messageContent, messageType, url)
+
+      // Clear file
+      setSelectedFile(null)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+
+      // Reload conversations
+      reloadConversations()
+    } catch (error: any) {
+      console.error('Failed to upload file:', error)
+      alert('Không thể upload file: ' + (error.message || 'Unknown error'))
+    } finally {
+      setUploadingFile(false)
+    }
+  }
+
 
   return (
     <div className={`min-h-screen ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'}`}>
@@ -1302,8 +1403,44 @@ const Messages: React.FC = () => {
                                   ? theme === 'dark' ? 'bg-blue-600' : 'bg-blue-500'
                                   : theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'
                               } ${isOwnMessage ? 'text-white' : theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                                <p className="break-words">{message.content || '(No content)'}</p>
-                                <span className={`text-xs ${
+                                {/* File Message */}
+                                {message.type === 'file' && message.fileUrl && (
+                                  <div className="mb-2">
+                                    <a
+                                      href={message.fileUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="flex items-center space-x-2 hover:underline"
+                                    >
+                                      <AttachFileIcon className="w-4 h-4" />
+                                      <span className="break-words">{message.content}</span>
+                                    </a>
+                                  </div>
+                                )}
+                                {/* Image Message */}
+                                {message.type === 'image' && message.fileUrl && (
+                                  <div className="mb-2">
+                                    <a
+                                      href={message.fileUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="block"
+                                    >
+                                      <img
+                                        src={message.fileUrl}
+                                        alt={message.content}
+                                        className="max-w-full h-auto rounded-lg cursor-pointer"
+                                        style={{ maxHeight: '300px' }}
+                                      />
+                                    </a>
+                                    <p className="text-xs mt-1 break-words">{message.content}</p>
+                                  </div>
+                                )}
+                                {/* Text Message */}
+                                {message.type === 'text' && (
+                                  <p className="break-words">{message.content || '(No content)'}</p>
+                                )}
+                                <span className={`text-xs block mt-1 ${
                                   isOwnMessage
                                     ? theme === 'dark' ? 'text-blue-200' : 'text-blue-100'
                                     : theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
@@ -1321,18 +1458,47 @@ const Messages: React.FC = () => {
 
                   {/* Message Input */}
                   <div className={`p-4 border-t ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+                    {/* Selected File Preview */}
+                    {selectedFile && (
+                      <div className={`mb-2 p-2 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'} flex items-center justify-between`}>
+                        <div className="flex items-center space-x-2">
+                          <AttachFileIcon className="w-4 h-4" />
+                          <span className="text-sm truncate max-w-xs">{selectedFile.name}</span>
+                          <span className="text-xs text-gray-500">({(selectedFile.size / 1024).toFixed(1)} KB)</span>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setSelectedFile(null)
+                            if (fileInputRef.current) fileInputRef.current.value = ''
+                          }}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <CloseIcon className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
                     <div className="flex items-center space-x-2">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx"
+                        onChange={handleFileSelect}
+                        className="hidden"
+                      />
                       <button 
+                        onClick={() => fileInputRef.current?.click()}
                         className={`p-2 rounded-lg ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
                         style={{
                           color: theme === 'dark' ? '#ffffff' : '#374151'
                         }}
+                        disabled={uploadingFile}
                       >
                         <AttachFileIcon className="w-5 h-5" />
                       </button>
                       
                       <div className="flex-1 relative">
                         <input
+                          ref={messageInputRef}
                           type="text"
                           value={newMessage}
                           onChange={(e) => setNewMessage(e.target.value)}
@@ -1346,25 +1512,34 @@ const Messages: React.FC = () => {
                         />
                       </div>
                       
-                      <button 
-                        className={`p-2 rounded-lg ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
-                        style={{
-                          color: theme === 'dark' ? '#ffffff' : '#374151'
-                        }}
-                      >
-                        <EmojiEmotionsIcon className="w-5 h-5" />
-                      </button>
+                      <div className="relative" ref={emojiPickerRef}>
+                        <button 
+                          onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                          className={`p-2 rounded-lg ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} ${showEmojiPicker ? (theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100') : ''}`}
+                          style={{
+                            color: theme === 'dark' ? '#ffffff' : '#374151'
+                          }}
+                        >
+                          <EmojiEmotionsIcon className="w-5 h-5" />
+                        </button>
+                        {showEmojiPicker && (
+                          <EmojiPicker
+                            onEmojiSelect={handleEmojiSelect}
+                            theme={theme === 'dark' ? 'dark' : 'light'}
+                          />
+                        )}
+                      </div>
                       
                       <Button
                         onClick={handleSendMessage}
-                        disabled={!newMessage.trim() || sending}
+                        disabled={(!newMessage.trim() && !selectedFile) || sending || uploadingFile}
                         className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 disabled:opacity-50"
                         style={{
                           color: '#ffffff'
                         }}
                       >
-                        {sending ? (
-                          <span className="text-sm">Đang gửi...</span>
+                        {sending || uploadingFile ? (
+                          <span className="text-sm">{uploadingFile ? 'Đang upload...' : 'Đang gửi...'}</span>
                         ) : (
                           <SendIcon className="w-4 h-4" />
                         )}

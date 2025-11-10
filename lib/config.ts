@@ -55,8 +55,8 @@ export const config = {
 
   // Upload Configuration
   upload: {
-    maxFileSize: 2 * 1024, // 2KB
-    allowedTypes: ['image/jpeg', 'image/png', 'application/pdf', 'video/mp4']
+    maxFileSize: 5 * 1024 * 1024, // 5MB (đủ cho PDF)
+    allowedTypes: ['image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
   }
 };
 

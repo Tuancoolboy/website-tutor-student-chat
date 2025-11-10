@@ -73,6 +73,9 @@ import { getMessagesHandler, sendMessageHandler, markMessageReadHandler } from '
 import { pollMessagesHandler } from './routes/messages/poll.js';
 import { sendMessageToUserHandler } from './routes/messages/send.js';
 
+// Import handlers - Upload
+import { uploadFileHandler } from './routes/upload/index.js';
+
 // Create Express app
 const app = express();
 
@@ -270,6 +273,10 @@ app.get('/api/messages/poll', authenticate, pollMessagesHandler);
 
 // Send message directly to user (auto-create conversation)
 app.post('/api/messages/send', authenticate, sendMessageToUserHandler);
+
+// ===== UPLOAD ROUTES =====
+
+app.post('/api/upload', authenticate, uploadFileHandler);
 
 // ===== ERROR HANDLING =====
 

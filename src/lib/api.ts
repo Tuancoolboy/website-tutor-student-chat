@@ -834,6 +834,44 @@ export const enrollmentsAPI = {
   }
 };
 
+// ===== UPLOAD =====
+
+export const uploadAPI = {
+  async uploadFile(file: File): Promise<{ success: boolean; data?: { url: string; fileName: string; fileSize: number; mimeType: string }; error?: string }> {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      
+      reader.onload = async () => {
+        try {
+          const base64 = reader.result as string;
+          const response = await fetchAPI('/upload', {
+            method: 'POST',
+            body: JSON.stringify({
+              file: base64,
+              fileName: file.name
+            })
+          });
+          resolve(response);
+        } catch (error: any) {
+          resolve({
+            success: false,
+            error: error.message || 'Upload failed'
+          });
+        }
+      };
+      
+      reader.onerror = () => {
+        resolve({
+          success: false,
+          error: 'Failed to read file'
+        });
+      };
+      
+      reader.readAsDataURL(file);
+    });
+  }
+};
+
 // ===== SESSION REQUESTS =====
 
 export const sessionRequestsAPI = {
