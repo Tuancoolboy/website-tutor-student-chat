@@ -8,11 +8,38 @@
 
 ## 🚀 Bước 1: Lấy BLOB_READ_WRITE_TOKEN
 
+### Cách 1: Từ Vercel Dashboard (Khuyến nghị)
+
 1. Vào: https://vercel.com/dashboard
 2. Chọn project: `tutor-student` (hoặc tên project của bạn)
 3. Vào **Storage** → **Blob**
-4. Nếu chưa có store, click **Create Blob Store**
-5. Copy **BLOB_READ_WRITE_TOKEN** (dạng: `vercel_blob_rw_xxxxx`)
+4. **Nếu chưa có store:**
+   - Click **Create Blob Store**
+   - Đặt tên: `tutor-student`
+   - Chọn region: `Singapore (sin1)` (hoặc region gần nhất)
+   - Click **Create**
+5. **Lấy token:**
+   - Vào **Settings** (icon bánh răng) của Blob Store
+   - Tìm phần **Environment Variables** hoặc **Tokens**
+   - Copy **BLOB_READ_WRITE_TOKEN** (dạng: `vercel_blob_rw_xxxxx...`)
+   - **Lưu ý**: Copy TOÀN BỘ token (không bỏ sót ký tự nào)
+
+### Cách 2: Từ Vercel Project Settings
+
+1. Vào **Project Settings** → **Environment Variables**
+2. Nếu đã có `BLOB_READ_WRITE_TOKEN`, copy value
+3. Nếu chưa có, sẽ tạo ở bước tiếp theo
+
+### ✅ Test Token (Quan trọng!)
+
+Sau khi có token, test xem token có hợp lệ không:
+
+```bash
+BLOB_READ_WRITE_TOKEN=your-token-here npx tsx scripts/test-blob-token.ts
+```
+
+Nếu thấy "✅ Token is valid!" → Token đúng!
+Nếu thấy "❌ Token is invalid" → Làm lại bước 1
 
 ## 🚀 Bước 2: Set Environment Variables
 

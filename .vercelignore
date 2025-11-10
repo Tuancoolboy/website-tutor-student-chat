@@ -1,0 +1,6 @@
+# Vercel ignore file
+# This file is used to control what files Vercel should ignore
+
+# Don't ignore anything - we want to rebuild everything
+# This ensures fresh installs on each deployment
+
