@@ -363,45 +363,69 @@ const Messages: React.FC = () => {
     // Check if conversation actually changed
     const conversationChanged = previousConversationIdRef.current !== selectedConversationId
     
-    if (conversationChanged && selectedConversationId && messages.length > 0) {
-      // Update ref to track current conversation
-      previousConversationIdRef.current = selectedConversationId
-      
-      // Scroll to bottom ONCE when opening conversation
-      // Use setTimeout to ensure DOM is updated and messages are rendered
-      setTimeout(() => {
-        if (messagesContainerRef.current) {
-          const container = messagesContainerRef.current
-          container.scrollTo({
-            top: container.scrollHeight,
-            behavior: 'auto' // Use 'auto' for instant scroll
-          })
-        }
-      }, 200) // Delay to ensure messages are fully rendered
-    } else if (conversationChanged) {
-      // Conversation changed but no messages yet - update ref and wait for messages
-      previousConversationIdRef.current = selectedConversationId
-      
-      // Wait for messages to load, then scroll once
-      const checkAndScroll = setInterval(() => {
-        if (messagesContainerRef.current && messages.length > 0) {
-          clearInterval(checkAndScroll)
-          setTimeout(() => {
-            if (messagesContainerRef.current) {
-              const container = messagesContainerRef.current
-              container.scrollTo({
-                top: container.scrollHeight,
-                behavior: 'auto'
-              })
-            }
-          }, 100)
-        }
-      }, 100)
-      
-      // Clear interval after 5 seconds to avoid infinite loop
-      setTimeout(() => clearInterval(checkAndScroll), 5000)
+    if (!conversationChanged || !selectedConversationId) {
+      // Same conversation or no conversation - don't scroll, let user control
+      return
     }
-  }, [selectedConversationId, messages.length]) // Depend on conversationId and messages count
+    
+    // Conversation changed - update ref immediately
+    previousConversationIdRef.current = selectedConversationId
+    
+    // Scroll to bottom ONCE when opening conversation
+    let scrollTimeout: NodeJS.Timeout | null = null
+    let checkInterval: NodeJS.Timeout | null = null
+    let hasScrolled = false
+    
+    const performScroll = () => {
+      if (hasScrolled || !messagesContainerRef.current) return
+      
+      const container = messagesContainerRef.current
+      
+      // Only scroll if there are messages or content to scroll to
+      if (container.scrollHeight > container.clientHeight) {
+        hasScrolled = true
+        container.scrollTo({
+          top: container.scrollHeight,
+          behavior: 'auto'
+        })
+      }
+    }
+    
+    // Try to scroll after a short delay to ensure DOM is ready
+    scrollTimeout = setTimeout(() => {
+      performScroll()
+      
+      // If no content yet, wait for it with interval (check less frequently)
+      if (!hasScrolled) {
+        checkInterval = setInterval(() => {
+          if (messagesContainerRef.current) {
+            const container = messagesContainerRef.current
+            if (container.scrollHeight > container.clientHeight) {
+              clearInterval(checkInterval!)
+              checkInterval = null
+              if (!hasScrolled) {
+                performScroll()
+              }
+            }
+          }
+        }, 300) // Check every 300ms to reduce overhead
+        
+        // Clear interval after 2 seconds
+        setTimeout(() => {
+          if (checkInterval) {
+            clearInterval(checkInterval)
+            checkInterval = null
+          }
+        }, 2000)
+      }
+    }, 400) // Delay to ensure messages are rendered
+    
+    // Cleanup
+    return () => {
+      if (scrollTimeout) clearTimeout(scrollTimeout)
+      if (checkInterval) clearInterval(checkInterval)
+    }
+  }, [selectedConversationId]) // ONLY depend on conversationId to avoid re-renders
 
   // Show loading screen while checking authentication
   if (isCheckingAuth || !currentUser) {
