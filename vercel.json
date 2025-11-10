@@ -1,6 +1,7 @@
 {
   "buildCommand": "npm run build",
   "installCommand": "npm ci --no-audit",
+  "outputDirectory": "dist",
   "functions": {
     "api/index.ts": {
       "memory": 2048,
