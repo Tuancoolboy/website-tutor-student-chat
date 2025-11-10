@@ -8,13 +8,17 @@ const isProduction = typeof window !== 'undefined'
   : false;
 
 // Get environment variables (Vite uses import.meta.env)
-// @ts-ignore - Vite provides import.meta.env
 const getEnvVar = (key: string): string | undefined => {
-  if (typeof window !== 'undefined' && (window as any).import?.meta?.env) {
-    return (window as any).import.meta.env[key];
+  try {
+    // @ts-ignore - Vite provides import.meta.env
+    if (import.meta && import.meta.env) {
+      // @ts-ignore
+      return import.meta.env[key];
+    }
+  } catch (e) {
+    // Ignore errors during build
   }
-  // @ts-ignore - Vite provides import.meta.env
-  return import.meta.env?.[key];
+  return undefined;
 };
 
 // API Base URL
