@@ -1,6 +1,6 @@
 {
   "buildCommand": "npm run build",
-  "installCommand": "npm ci --no-audit --prefer-offline=false",
+  "installCommand": "npm ci --no-audit --include=dev",
   "functions": {
     "api/index.ts": {
       "memory": 2048,
