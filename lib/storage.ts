@@ -353,32 +353,40 @@ export class JSONStorage {
       
       if (targetBlob) {
         console.log(`[Blob Storage] Found blob at ${blobPath}, URL: ${targetBlob.url}`);
-        // Fetch the blob content
+        // Fetch blob with token in Authorization header to avoid 403 Forbidden
+        // Public blobs should work, but adding token ensures access
         let response: Response;
         try {
-          response = await fetch(targetBlob.url);
+          const token = process.env.BLOB_READ_WRITE_TOKEN;
+          response = await fetch(targetBlob.url, {
+            headers: token ? {
+              'Authorization': `Bearer ${token}`
+            } : {}
+          });
         } catch (fetchError: any) {
           console.error(`[Blob Storage] Error fetching blob from ${targetBlob.url}:`, fetchError.message);
           throw new Error(`Failed to fetch blob: ${fetchError.message}`);
         }
         
-        // Check if response is OK and content-type is JSON
+        // Check if response is OK
         if (!response.ok) {
           const errorText = await response.text().catch(() => 'Unknown error');
           console.error(`[Blob Storage] Failed to fetch blob: ${response.status} ${response.statusText}`, errorText.substring(0, 200));
+          // If 403, suggest checking blob access settings
+          if (response.status === 403) {
+            throw new Error(`403 Forbidden: Blob may not be public or token is invalid. Please verify blob was uploaded with access: 'public' or check BLOB_READ_WRITE_TOKEN.`);
+          }
           throw new Error(`Failed to fetch blob: ${response.status} ${response.statusText}. ${errorText.substring(0, 100)}`);
         }
         
-        const contentType = response.headers.get('content-type') || '';
         const content = await response.text();
         
         // Validate that content is valid JSON (not HTML or error page)
         const trimmedContent = content.trim();
         if (!trimmedContent.startsWith('[') && !trimmedContent.startsWith('{')) {
           console.error(`[Blob Storage] Invalid JSON format for ${blobPath}: content starts with "${trimmedContent.substring(0, 100)}"`);
-          console.error(`[Blob Storage] Content-Type: ${contentType}, URL: ${targetBlob.url}`);
           console.error(`[Blob Storage] Content length: ${content.length} bytes`);
-          throw new Error(`Invalid JSON format for ${blobPath}. Content appears to be ${contentType} instead of JSON. Please verify the file was uploaded correctly.`);
+          throw new Error(`Invalid JSON format for ${blobPath}. Content appears to be HTML or error page instead of JSON. Please verify the file was uploaded correctly.`);
         }
         
         try {
@@ -407,20 +415,34 @@ export class JSONStorage {
       
       if (rootBlob) {
         console.log(`[Blob Storage] Found blob at root level: ${filename}`);
-        const response = await fetch(rootBlob.url);
+        // Fetch blob with token in Authorization header
+        let response: Response;
+        try {
+          const token = process.env.BLOB_READ_WRITE_TOKEN;
+          response = await fetch(rootBlob.url, {
+            headers: token ? {
+              'Authorization': `Bearer ${token}`
+            } : {}
+          });
+        } catch (fetchError: any) {
+          console.error(`[Blob Storage] Error fetching blob from root ${rootBlob.url}:`, fetchError.message);
+          throw new Error(`Failed to fetch blob at root level: ${fetchError.message}`);
+        }
         
         if (!response.ok) {
+          const errorText = await response.text().catch(() => 'Unknown error');
+          if (response.status === 403) {
+            throw new Error(`403 Forbidden: Blob may not be public or token is invalid. Please verify blob was uploaded with access: 'public'.`);
+          }
           throw new Error(`Failed to fetch blob: ${response.status} ${response.statusText}`);
         }
         
-        const contentType = response.headers.get('content-type') || '';
         const content = await response.text();
         
         // Validate that content is valid JSON
         const trimmedContent = content.trim();
         if (!trimmedContent.startsWith('[') && !trimmedContent.startsWith('{')) {
           console.error(`[Blob Storage] Invalid JSON format for ${filename} at root: content starts with "${trimmedContent.substring(0, 50)}"`);
-          console.error(`[Blob Storage] Content-Type: ${contentType}, URL: ${rootBlob.url}`);
           throw new Error(`Invalid JSON format for ${filename} at root level. Please verify the file was uploaded correctly.`);
         }
         
