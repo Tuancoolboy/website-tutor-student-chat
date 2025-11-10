@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useNavigate } from 'react-router-dom'
 import Button from '../../components/ui/Button'
@@ -71,26 +71,41 @@ const Messages: React.FC = () => {
 
   // Debounce reload conversations to avoid too many API calls
   const reloadConversationsTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const reloadConversations = useCallback(async () => {
+  const lastReloadTimeRef = useRef<number>(0)
+  const reloadConversations = useCallback(async (force: boolean = false) => {
+    // Prevent too frequent reloads - only reload at most once every 5 seconds
+    const now = Date.now()
+    if (!force && now - lastReloadTimeRef.current < 5000) {
+      return // Skip reload if less than 5 seconds since last reload
+    }
+    
     // Clear existing timeout
     if (reloadConversationsTimeoutRef.current) {
       clearTimeout(reloadConversationsTimeoutRef.current)
     }
     
-    // Debounce: only reload after 1 second of no new messages
+    // Debounce: only reload after 3 seconds of no new messages (increased from 1 second)
     reloadConversationsTimeoutRef.current = setTimeout(async () => {
       try {
+        lastReloadTimeRef.current = Date.now()
         const response = await conversationsAPI.list()
         if (response.success && response.data) {
           const conversationsData = Array.isArray(response.data) ? response.data : []
-          setConversations(conversationsData)
+          // Update conversations without showing loading indicator
+          setConversations(prev => {
+            // Only update if data actually changed to prevent unnecessary re-renders
+            if (JSON.stringify(prev) !== JSON.stringify(conversationsData)) {
+              return conversationsData
+            }
+            return prev
+          })
         }
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
           console.error('Failed to reload conversations:', error)
         }
       }
-    }, 1000) // Wait 1 second before reloading
+    }, force ? 0 : 3000) // Wait 3 seconds before reloading (increased from 1 second)
   }, [])
 
   // Long Polling Hook
@@ -98,8 +113,14 @@ const Messages: React.FC = () => {
     conversationId: selectedConversationId,
     enabled: !!selectedConversationId,
     onMessage: (message) => {
-      // Debounced reload - will only reload after 1 second of no new messages
-      reloadConversations()
+      // Only reload conversations if message is from a different conversation
+      // This prevents unnecessary reloads when viewing the active conversation
+      if (message.conversationId !== selectedConversationId) {
+        // Message from another conversation - reload list to update lastMessage
+        reloadConversations()
+      }
+      // If message is from current conversation, no need to reload conversations list
+      // The message is already displayed via polling
     },
     onError: (error) => {
       if (process.env.NODE_ENV === 'development') {
@@ -143,70 +164,91 @@ const Messages: React.FC = () => {
     loadCurrentUser()
   }, [navigate])
 
+  // Track if this is the first load
+  const isFirstLoadRef = useRef(true)
+  const usersRef = useRef<Record<string, any>>({})
+  
+  // Update usersRef when users change
+  useEffect(() => {
+    usersRef.current = users
+  }, [users])
+  
   // Load conversations
   useEffect(() => {
-    const loadConversations = async () => {
+    const loadConversations = async (showLoading: boolean = false) => {
       try {
-        setLoading(true)
-        console.log('[Messages] Loading conversations...')
+        if (showLoading) {
+          setLoading(true)
+        }
         const response = await conversationsAPI.list()
-        console.log('[Messages] Conversations response:', response)
         
         if (response.success && response.data) {
           const conversationsData = Array.isArray(response.data) ? response.data : []
-          console.log('[Messages] Found', conversationsData.length, 'conversations')
           setConversations(conversationsData)
           
-          // Load user info for all participants
+          // Load user info for all participants (only if we don't have them yet)
           const allUserIds = new Set<string>()
           conversationsData.forEach((conv: any) => {
             if (conv.participants && Array.isArray(conv.participants)) {
-              conv.participants.forEach((id: string) => allUserIds.add(id))
+              conv.participants.forEach((id: string) => {
+                if (!usersRef.current[id]) {
+                  allUserIds.add(id)
+                }
+              })
             }
           })
           
-          console.log('[Messages] Loading', allUserIds.size, 'users...')
-          
-          // Load users in parallel
-          const userPromises = Array.from(allUserIds).map(async (userId) => {
-            try {
-              const userResponse = await usersAPI.get(userId)
-              if (userResponse.success && userResponse.data) {
-                return [userId, userResponse.data]
+          // Only load users we don't have yet
+          if (allUserIds.size > 0) {
+            const userPromises = Array.from(allUserIds).map(async (userId) => {
+              try {
+                const userResponse = await usersAPI.get(userId)
+                if (userResponse.success && userResponse.data) {
+                  return [userId, userResponse.data]
+                }
+              } catch (error) {
+                if (process.env.NODE_ENV === 'development') {
+                  console.error(`[Messages] Failed to load user ${userId}:`, error)
+                }
               }
-            } catch (error) {
-              console.error(`[Messages] Failed to load user ${userId}:`, error)
-            }
-            return null
-          })
-          
-          const userResults = await Promise.all(userPromises)
-          const usersMap: Record<string, any> = {}
-          userResults.forEach(result => {
-            if (result) {
-              usersMap[result[0]] = result[1]
-            }
-          })
-          console.log('[Messages] Loaded', Object.keys(usersMap).length, 'users')
-          setUsers(usersMap)
+              return null
+            })
+            
+            const userResults = await Promise.all(userPromises)
+            setUsers(prev => {
+              const usersMap = { ...prev }
+              userResults.forEach(result => {
+                if (result) {
+                  usersMap[result[0]] = result[1]
+                }
+              })
+              return usersMap
+            })
+          }
         } else {
-          console.warn('[Messages] No conversations found or invalid response:', response)
           setConversations([])
         }
       } catch (error) {
-        console.error('[Messages] Failed to load conversations:', error)
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[Messages] Failed to load conversations:', error)
+        }
         setConversations([])
       } finally {
-        setLoading(false)
+        if (showLoading) {
+          setLoading(false)
+        }
       }
     }
     
     // Only load if currentUser is available
     if (currentUser) {
-      loadConversations()
+      // Show loading only on first load
+      loadConversations(isFirstLoadRef.current)
+      isFirstLoadRef.current = false
       
-      // Refresh conversations every 30 seconds
-      const interval = setInterval(loadConversations, 30000)
+      // Refresh conversations every 60 seconds (increased from 30 to reduce reloads)
+      // Don't show loading on refresh
+      const interval = setInterval(() => loadConversations(false), 60000)
       return () => clearInterval(interval)
     } else {
       // If no currentUser yet, set loading to false to show the page
@@ -532,15 +574,26 @@ const Messages: React.FC = () => {
     { id: 'messages', label: 'Messages', icon: <ChatIcon />, path: '/tutor/messages' }
   ]
 
-  // Only format conversations if we have currentUser
-  const formattedConversations = currentUser ? conversations.map(formatConversation) : []
+  // Memoize formatted conversations to avoid re-computing on every render
+  const formattedConversations = useMemo(() => {
+    if (!currentUser) return []
+    return conversations.map(formatConversation)
+  }, [conversations, currentUser, users])
   
-  const filteredConversations = formattedConversations.filter(conv =>
-    conv.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    conv.subject.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  // Memoize filtered conversations to avoid re-filtering on every render
+  const filteredConversations = useMemo(() => {
+    if (!searchQuery.trim()) return formattedConversations
+    const query = searchQuery.toLowerCase()
+    return formattedConversations.filter(conv =>
+      conv.name.toLowerCase().includes(query) ||
+      conv.subject.toLowerCase().includes(query)
+    )
+  }, [formattedConversations, searchQuery])
   
-  const selectedConversation = formattedConversations.find(c => c.id === selectedConversationId)
+  // Memoize selected conversation
+  const selectedConversation = useMemo(() => {
+    return formattedConversations.find(c => c.id === selectedConversationId)
+  }, [formattedConversations, selectedConversationId])
   const currentUserId = currentUser?.userId || currentUser?.id || ''
 
   // Load available users (all users: students, tutors, management)
@@ -732,26 +785,17 @@ const Messages: React.FC = () => {
       
       await sendMessage(messageContent)
       
-      // Force a small delay and then reload history to ensure message appears
-      // This is a fallback in case the message wasn't added to state
+      // Message is already added to state by sendMessage, no need to reload immediately
+      // Only reload history as fallback if message doesn't appear
       setTimeout(async () => {
-        await loadHistory()
-      }, 500)
-      
-      // Reload conversations to update lastMessage after sending
-      const reloadConversations = async () => {
-        try {
-          const response = await conversationsAPI.list()
-          if (response.success && response.data) {
-            const conversationsData = Array.isArray(response.data) ? response.data : []
-            setConversations(conversationsData)
-          }
-        } catch (error) {
-          console.error('Failed to reload conversations:', error)
+        const messageExists = messages.some(m => m.content === messageContent)
+        if (!messageExists) {
+          await loadHistory()
         }
-      }
-      // Small delay to ensure message is saved to database
-      setTimeout(reloadConversations, 500)
+      }, 1000)
+      
+      // Reload conversations list to update lastMessage (debounced, won't reload if recent)
+      reloadConversations()
     } catch (error: any) {
       console.error('Failed to send message:', error)
       alert('Không thể gửi tin nhắn: ' + (error.message || 'Unknown error'))
