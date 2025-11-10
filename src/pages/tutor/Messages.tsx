@@ -546,11 +546,11 @@ const Messages: React.FC = () => {
   }
 
 
-  // Format conversation for display - memoized with useCallback
+  // Format conversation for display - use usersRef to avoid dependency issues
   const formatConversation = useCallback((conversation: any) => {
     const currentUserId = currentUser?.userId || currentUser?.id || ''
     const otherId = conversation.participants?.find((id: string) => id !== currentUserId)
-    const otherUser = otherId ? users[otherId] : null
+    const otherUser = otherId ? usersRef.current[otherId] : null
     const lastMessage = conversation.lastMessage
     const unreadCount = conversation.unreadCount?.[currentUserId] || 0
     
@@ -572,7 +572,7 @@ const Messages: React.FC = () => {
       otherUser,
       otherId
     }
-  }, [currentUser, users])
+  }, [currentUser])
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <DashboardIcon />, path: '/tutor' },
@@ -584,10 +584,11 @@ const Messages: React.FC = () => {
   ]
 
   // Memoize formatted conversations to avoid re-computing on every render
+  // Include users in dependency to re-run when users change, but formatConversation uses usersRef
   const formattedConversations = useMemo(() => {
     if (!currentUser) return []
     return conversations.map(formatConversation)
-  }, [conversations, currentUser, formatConversation])
+  }, [conversations, currentUser, formatConversation, users])
   
   // Memoize filtered conversations to avoid re-filtering on every render
   const filteredConversations = useMemo(() => {
