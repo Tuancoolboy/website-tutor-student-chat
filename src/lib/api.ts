@@ -462,13 +462,32 @@ export const usersAPI = {
     search?: string;
     page?: number;
     limit?: number;
+    ids?: string[]; // Batch load users by IDs
   }) {
     const query = params ? '?' + new URLSearchParams(params as any).toString() : '';
+    // If ids is provided, join them with commas
+    if (params?.ids && params.ids.length > 0) {
+      const queryParams = new URLSearchParams();
+      if (params.role) queryParams.set('role', params.role);
+      if (params.search) queryParams.set('search', params.search);
+      if (params.page) queryParams.set('page', params.page.toString());
+      if (params.limit) queryParams.set('limit', params.limit.toString());
+      queryParams.set('ids', params.ids.join(','));
+      return fetchAPI(`/users?${queryParams.toString()}`);
+    }
     return fetchAPI(`/users${query}`);
   },
 
   async get(id: string) {
     return fetchAPI(`/users/${id}`);
+  },
+
+  // Batch load users by IDs (much faster than multiple get() calls)
+  async getByIds(ids: string[]) {
+    if (ids.length === 0) {
+      return { success: true, data: [] };
+    }
+    return this.list({ ids });
   },
 
   async update(id: string, data: any) {

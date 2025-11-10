@@ -45,6 +45,7 @@ const Messages: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [conversations, setConversations] = useState<any[]>([])
   const [users, setUsers] = useState<Record<string, any>>({})
+  const [usersLoaded, setUsersLoaded] = useState(0) // Track when users are loaded to force re-render
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
   const [currentUser, setCurrentUser] = useState<any>(null)
@@ -187,11 +188,6 @@ const Messages: React.FC = () => {
   const isFirstLoadRef = useRef(true)
   const usersRef = useRef<Record<string, any>>({})
   
-  // Update usersRef when users change
-  useEffect(() => {
-    usersRef.current = users
-  }, [users])
-  
   // Load conversations
   useEffect(() => {
     const loadConversations = async (showLoading: boolean = false) => {
@@ -203,9 +199,9 @@ const Messages: React.FC = () => {
         
         if (response.success && response.data) {
           const conversationsData = Array.isArray(response.data) ? response.data : []
-          setConversations(conversationsData)
           
-          // Load user info for all participants (only if we don't have them yet)
+          // Load user info for all participants FIRST (before setting conversations)
+          // This ensures names are displayed immediately instead of "User xxx"
           const allUserIds = new Set<string>()
           conversationsData.forEach((conv: any) => {
             if (conv.participants && Array.isArray(conv.participants)) {
@@ -217,33 +213,58 @@ const Messages: React.FC = () => {
             }
           })
           
-          // Only load users we don't have yet
+          // Load all users FIRST using batch API (much faster than multiple individual calls)
+          // This prevents showing "User xxx" placeholder
+          let finalUsersMap: Record<string, any> = { ...usersRef.current }
+          
           if (allUserIds.size > 0) {
-            const userPromises = Array.from(allUserIds).map(async (userId) => {
-              try {
-                const userResponse = await usersAPI.get(userId)
-                if (userResponse.success && userResponse.data) {
-                  return [userId, userResponse.data]
-                }
-              } catch (error) {
-                if (process.env.NODE_ENV === 'development') {
-                  console.error(`[Messages] Failed to load user ${userId}:`, error)
-                }
+            try {
+              // Use batch loading API - only 1 API call instead of N calls
+              const userIdsArray = Array.from(allUserIds)
+              const batchResponse = await usersAPI.getByIds(userIdsArray)
+              
+              if (batchResponse.success && batchResponse.data) {
+                // Convert array to map for easy lookup
+                batchResponse.data.forEach((user: any) => {
+                  finalUsersMap[user.id] = user
+                })
               }
-              return null
-            })
-            
-            const userResults = await Promise.all(userPromises)
-            setUsers(prev => {
-              const usersMap = { ...prev }
+            } catch (error) {
+              if (process.env.NODE_ENV === 'development') {
+                console.error('[Messages] Failed to batch load users:', error)
+              }
+              // Fallback to individual loading if batch fails
+              const userPromises = Array.from(allUserIds).map(async (userId) => {
+                try {
+                  const userResponse = await usersAPI.get(userId)
+                  if (userResponse.success && userResponse.data) {
+                    return [userId, userResponse.data]
+                  }
+                } catch (error) {
+                  if (process.env.NODE_ENV === 'development') {
+                    console.error(`[Messages] Failed to load user ${userId}:`, error)
+                  }
+                }
+                return null
+              })
+              
+              const userResults = await Promise.all(userPromises)
               userResults.forEach(result => {
                 if (result) {
-                  usersMap[result[0]] = result[1]
+                  finalUsersMap[result[0]] = result[1]
                 }
               })
-              return usersMap
-            })
+            }
           }
+          
+          // Update usersRef FIRST for immediate access
+          usersRef.current = finalUsersMap
+          
+          // Set users and conversations together - React will batch and re-render correctly
+          // formattedConversations uses users state directly, so it will get the updated data
+          setUsers(finalUsersMap)
+          setUsersLoaded(prev => prev + 1) // Force re-render when users are loaded
+          setConversations(conversationsData)
         } else {
           setConversations([])
         }
@@ -544,7 +565,8 @@ const Messages: React.FC = () => {
     
     return conversations.map((conversation: any) => {
       const otherId = conversation.participants?.find((id: string) => id !== currentUserId)
-      const otherUser = otherId ? usersRef.current[otherId] : null
+      // Use users state directly instead of usersRef to ensure it updates immediately
+      const otherUser = otherId ? users[otherId] : null
       const lastMessage = conversation.lastMessage
       const unreadCount = conversation.unreadCount?.[currentUserId] || 0
       
@@ -567,7 +589,7 @@ const Messages: React.FC = () => {
         otherId
       }
     })
-  }, [conversations, currentUserId, usersKeysLength, currentUser])
+  }, [conversations, conversations.length, currentUserId, users, usersKeysLength, usersLoaded, currentUser])
   
   // Memoize filtered conversations to avoid re-filtering on every render
   const filteredConversations = useMemo(() => {
