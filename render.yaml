@@ -1,18 +1,18 @@
 services:
   - type: web
-    name: websocket-server
+    name: tutor-student-api
     env: node
     region: singapore
     plan: free
-    buildCommand: npm install
-    startCommand: tsx ws-server.ts
+    buildCommand: npm install && npm run build
+    startCommand: npm run api
     envVars:
-      - key: JWT_SECRET
-        sync: false
-      - key: FRONTEND_URL
-        value: https://hcmut-tutor.vercel.app
-      - key: PORT
-        value: 10000
       - key: NODE_ENV
         value: production
-
+      - key: USE_LOCAL_STORAGE
+        value: "true"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        sync: false
+    healthCheckPath: /health

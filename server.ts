@@ -93,8 +93,8 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.use(express.json({ limit: '2kb' }));
-app.use(express.urlencoded({ extended: true, limit: '2kb' }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Request logger
 app.use((req, res, next) => {

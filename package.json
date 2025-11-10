@@ -19,7 +19,10 @@
     "seed": "tsx lib/seed.ts",
     "seed:clean": "node -e \"require('fs').rmSync('data', {recursive: true, force: true})\" && npm run seed",
     "validate": "tsx scripts/validate.ts",
-    "stats": "tsx -e \"import('./lib/dataValidator').then(m => m.generateDataStats())\""
+    "stats": "tsx -e \"import('./lib/dataValidator').then(m => m.generateDataStats())\"",
+    "upload:blob": "tsx scripts/upload-to-blob.ts",
+    "check:blob": "tsx scripts/check-blob-storage.ts",
+    "test:blob": "tsx scripts/test-blob-token.ts"
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",
@@ -45,8 +48,8 @@
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.294.0",
     "nanoid": "^5.1.6",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "react-i18next": "^16.2.3",
     "react-router-dom": "^6.20.1",
     "socket.io": "^4.8.1",
@@ -60,8 +63,8 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.4",
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/react": "^18.2.37",
-    "@types/react-dom": "^18.2.15",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
     "@typescript-eslint/eslint-plugin": "^6.10.0",
     "@typescript-eslint/parser": "^6.10.0",
     "@vitejs/plugin-react": "^4.1.1",
