@@ -53,14 +53,27 @@ export class JSONStorage {
       }
     } catch (error: any) {
       console.error(`[Storage] Error reading ${filename}:`, error.message);
-      // For critical files like users.json, we should throw the error
-      // instead of returning empty array to avoid silent failures
-      if (filename === 'users.json' || filename === 'messages.json' || filename === 'conversations.json') {
-        console.error(`[Storage] Critical file ${filename} failed to load. Throwing error.`);
+      
+      // If error is about file not found (first time use), return empty array for ALL files
+      // This allows creating the first item in a new file (forum-posts.json, etc.)
+      if (error.message.includes('No blob found') || 
+          error.message.includes('not found') ||
+          error.message.includes('ENOENT') ||
+          (error.code && error.code === 'ENOENT')) {
+        console.log(`[Storage] File ${filename} doesn't exist yet. This is normal for new files. Returning empty array.`);
+        return [];
+      }
+      
+      // For critical files, throw error for other types of errors (403, 500, network errors, etc.)
+      // For non-critical files, return empty array but log warning
+      const criticalFiles = ['users.json', 'messages.json', 'conversations.json'];
+      if (criticalFiles.includes(filename)) {
+        console.error(`[Storage] Critical file ${filename} failed to load. Error:`, error.message);
+        console.error(`[Storage] Error stack:`, error.stack);
         throw error;
       }
-      // For non-critical files, return empty array
-      console.warn(`[Storage] Non-critical file ${filename} failed to load. Returning empty array.`);
+      // For non-critical files (including forum-posts.json), return empty array but log warning
+      console.warn(`[Storage] Non-critical file ${filename} failed to load. Returning empty array. Error:`, error.message);
       return [];
     }
   }
@@ -69,14 +82,18 @@ export class JSONStorage {
    * Ghi dữ liệu vào JSON file
    */
   async write<T = any>(filename: string, data: T[]): Promise<void> {
+    console.log(`[Storage] Writing to ${filename}, using ${this.useBlob ? 'Blob Storage' : 'local file system'}, data length: ${data.length}`);
     try {
       if (this.useBlob) {
         await this.writeToBlob(filename, data);
+        console.log(`[Storage] Successfully wrote to Blob Storage: ${filename}`);
       } else {
         await this.writeToLocal(filename, data);
+        console.log(`[Storage] Successfully wrote to local file: ${filename}`);
       }
-    } catch (error) {
-      console.error(`Error writing ${filename}:`, error);
+    } catch (error: any) {
+      console.error(`[Storage] Error writing to ${filename}:`, error.message);
+      console.error(`[Storage] Error stack:`, error.stack);
       throw error;
     }
   }
@@ -136,7 +153,9 @@ export class JSONStorage {
     filename: string,
     item: T
   ): Promise<T> {
+    console.log(`[Storage] Creating item in ${filename}:`, item.id);
     const data = await this.read<T>(filename);
+    console.log(`[Storage] Current data length in ${filename}:`, data.length);
     
     // Kiểm tra duplicate ID
     if (data.some((existing) => existing.id === item.id)) {
@@ -144,7 +163,9 @@ export class JSONStorage {
     }
 
     data.push(item);
+    console.log(`[Storage] Writing ${data.length} items to ${filename}...`);
     await this.write(filename, data);
+    console.log(`[Storage] Successfully wrote to ${filename}`);
     return item;
   }
 
@@ -345,43 +366,58 @@ export class JSONStorage {
         // URL not in cache, need to find it using list() (Advanced Operation - use sparingly)
         // Only do this once per file, then cache the URL
         console.log(`[Blob Storage] URL not in cache, finding blob for ${blobPath}...`);
-        try {
-          const result = await list({ prefix: blobPath });
+      try {
+        const result = await list({ prefix: blobPath });
+          console.log(`[Blob Storage] Found ${result.blobs.length} blobs with prefix ${blobPath}`);
           const targetBlob = result.blobs.find(blob => blob.pathname === blobPath);
           if (targetBlob) {
             blobUrl = targetBlob.url;
             this.blobUrlCache.set(blobPath, blobUrl);
-            console.log(`[Blob Storage] Found and cached URL for ${blobPath}`);
-          }
-        } catch (listError: any) {
-          console.error(`[Blob Storage] Error listing blobs for ${blobPath}:`, listError.message);
-          // Try root level as fallback
-          try {
-            const rootResult = await list({ prefix: filename });
-            const rootBlob = rootResult.blobs.find(blob => blob.pathname === filename);
-            if (rootBlob) {
-              blobUrl = rootBlob.url;
-              this.blobUrlCache.set(filename, blobUrl);
-              console.log(`[Blob Storage] Found and cached URL for ${filename} at root level`);
+            console.log(`[Blob Storage] Found and cached URL for ${blobPath}: ${blobUrl}`);
+          } else {
+            console.log(`[Blob Storage] Blob not found at ${blobPath}, trying root level...`);
+            // Try root level as fallback
+            try {
+              const rootResult = await list({ prefix: filename });
+              console.log(`[Blob Storage] Found ${rootResult.blobs.length} blobs with prefix ${filename}`);
+              const rootBlob = rootResult.blobs.find(blob => blob.pathname === filename);
+              if (rootBlob) {
+                blobUrl = rootBlob.url;
+                this.blobUrlCache.set(filename, blobUrl);
+                console.log(`[Blob Storage] Found and cached URL for ${filename} at root level: ${blobUrl}`);
+              }
+            } catch (rootListError: any) {
+              console.error(`[Blob Storage] Error listing blobs at root level:`, rootListError.message);
+              // File doesn't exist - return empty array for first-time use
+              console.log(`[Blob Storage] File ${filename} doesn't exist yet. Returning empty array.`);
+              return [];
             }
-          } catch (rootListError: any) {
-            throw new Error(`Failed to find blob for ${filename}: ${listError.message}`);
           }
+      } catch (listError: any) {
+        console.error(`[Blob Storage] Error listing blobs for ${blobPath}:`, listError.message);
+          // File doesn't exist - return empty array for first-time use
+          console.log(`[Blob Storage] File ${filename} doesn't exist yet (error listing). Returning empty array.`);
+          return [];
         }
       } else {
-        console.log(`[Blob Storage] Using cached URL for ${blobPath}`);
+        console.log(`[Blob Storage] Using cached URL for ${blobPath}: ${blobUrl.substring(0, 50)}...`);
       }
       
       if (!blobUrl) {
-        throw new Error(`No blob found for ${filename} at ${blobPath} or root level. Please upload the file to Blob Storage.`);
+        // File doesn't exist yet - this is OK for first-time use
+        // Return empty array so we can create the first item
+        console.log(`[Blob Storage] No blob found for ${filename} at ${blobPath} or root level. This is normal for new files. Returning empty array.`);
+        return [];
       }
       
       // Fetch blob using cached URL (this doesn't count as Advanced Operation)
       // Try without token first (if blob is public), then with token if needed
-      let response: Response;
-      try {
+        let response: Response;
+        try {
         // First try: Fetch without token (for public blobs)
+        console.log(`[Blob Storage] Fetching from URL: ${blobUrl.substring(0, 80)}...`);
         response = await fetch(blobUrl);
+        console.log(`[Blob Storage] Fetch response status: ${response.status} ${response.statusText}`);
         
         // If 403, try with token
         if (response.status === 403) {
@@ -390,23 +426,37 @@ export class JSONStorage {
             console.log(`[Blob Storage] Got 403, retrying with token...`);
             response = await fetch(blobUrl, {
               headers: {
-                'Authorization': `Bearer ${token}`
+              'Authorization': `Bearer ${token}`
               }
             });
+            console.log(`[Blob Storage] Retry with token status: ${response.status} ${response.statusText}`);
           }
         }
+        
+        // If 404, file doesn't exist - return empty array
+        if (response.status === 404) {
+          console.log(`[Blob Storage] Got 404 for ${blobPath}. File doesn't exist. Clearing cache and returning empty array.`);
+          this.blobUrlCache.delete(blobPath);
+          this.blobUrlCache.delete(filename);
+          return [];
+        }
       } catch (fetchError: any) {
-        // URL might be stale, clear cache and retry once
-        console.warn(`[Blob Storage] Failed to fetch from cached URL, clearing cache for ${blobPath}`);
+        // URL might be stale, clear cache
+        console.warn(`[Blob Storage] Failed to fetch from cached URL: ${fetchError.message}. Clearing cache for ${blobPath}`);
         this.blobUrlCache.delete(blobPath);
         this.blobUrlCache.delete(filename);
+        // If it's a network error or 404, return empty array (file doesn't exist)
+        if (fetchError.message.includes('404') || fetchError.message.includes('not found')) {
+          console.log(`[Blob Storage] File ${filename} doesn't exist. Returning empty array.`);
+          return [];
+        }
         throw new Error(`Failed to fetch blob: ${fetchError.message}. Cache cleared, will retry on next request.`);
-      }
-      
-      // Check if response is OK
-      if (!response.ok) {
+        }
+        
+        // Check if response is OK
+        if (!response.ok) {
         const errorStatus = response.status;
-        const errorText = await response.text().catch(() => 'Unknown error');
+          const errorText = await response.text().catch(() => 'Unknown error');
         
         // If 403 or 404, clear cache and retry once with fresh list()
         if (errorStatus === 403 || errorStatus === 404) {
@@ -445,7 +495,25 @@ export class JSONStorage {
                 const retryErrorText = await retryResponse.text().catch(() => 'Unknown error');
                 console.error(`[Blob Storage] Retry failed: ${retryResponse.status} ${retryResponse.statusText}`, retryErrorText.substring(0, 200));
                 if (retryResponse.status === 403) {
-                  throw new Error(`403 Forbidden: Blob may not be public or token is invalid. Please verify: 1) Blob was uploaded with access: 'public', 2) BLOB_READ_WRITE_TOKEN is correct in Vercel environment variables.`);
+                  throw new Error(`403 Forbidden: Blob may not be public or token is invalid. 
+
+CÁCH KHẮC PHỤC:
+1. Lấy token mới từ Blob Store:
+   - Vào https://vercel.com/dashboard/stores
+   - Chọn Blob Store của bạn (ví dụ: website-tutor-student-blob)
+   - Vào tab "Settings" → "Tokens"
+   - Copy token có dạng: vercel_blob_rw_xxxxx
+
+2. Cập nhật token trên Vercel:
+   - Vào https://vercel.com/dashboard → Chọn project của bạn
+   - Settings → Environment Variables
+   - Tìm BLOB_READ_WRITE_TOKEN → Edit
+   - Paste token mới → Save
+   - QUAN TRỌNG: Redeploy project để áp dụng thay đổi
+
+3. Nếu vẫn lỗi, upload lại các file:
+   - Chạy: BLOB_READ_WRITE_TOKEN=token-mới npm run upload:blob
+   - Đảm bảo các file được upload với access: 'public'`);
                 }
                 throw new Error(`Failed to fetch blob after retry: ${retryResponse.status} ${retryResponse.statusText}. ${retryErrorText.substring(0, 100)}`);
               }
@@ -482,7 +550,25 @@ export class JSONStorage {
                   const rootErrorText = await rootResponse.text().catch(() => 'Unknown error');
                   console.error(`[Blob Storage] Root level fetch failed: ${rootResponse.status} ${rootResponse.statusText}`, rootErrorText.substring(0, 200));
                   if (rootResponse.status === 403) {
-                    throw new Error(`403 Forbidden: Blob may not be public or token is invalid. Please verify: 1) Blob was uploaded with access: 'public', 2) BLOB_READ_WRITE_TOKEN is correct in Vercel environment variables.`);
+                    throw new Error(`403 Forbidden: Blob may not be public or token is invalid. 
+
+CÁCH KHẮC PHỤC:
+1. Lấy token mới từ Blob Store:
+   - Vào https://vercel.com/dashboard/stores
+   - Chọn Blob Store của bạn (ví dụ: website-tutor-student-blob)
+   - Vào tab "Settings" → "Tokens"
+   - Copy token có dạng: vercel_blob_rw_xxxxx
+
+2. Cập nhật token trên Vercel:
+   - Vào https://vercel.com/dashboard → Chọn project của bạn
+   - Settings → Environment Variables
+   - Tìm BLOB_READ_WRITE_TOKEN → Edit
+   - Paste token mới → Save
+   - QUAN TRỌNG: Redeploy project để áp dụng thay đổi
+
+3. Nếu vẫn lỗi, upload lại các file:
+   - Chạy: BLOB_READ_WRITE_TOKEN=token-mới npm run upload:blob
+   - Đảm bảo các file được upload với access: 'public'`);
                   }
                   throw new Error(`Failed to fetch blob at root level: ${rootResponse.status} ${rootResponse.statusText}. ${rootErrorText.substring(0, 100)}`);
                 }
@@ -490,14 +576,42 @@ export class JSONStorage {
                 // Success - use root response
                 response = rootResponse;
               } else {
-                throw new Error(`No blob found for ${filename} at ${blobPath} or root level. Please upload the file to Blob Storage.`);
+                // File doesn't exist yet - this is OK for first-time use
+                // Return empty array so we can create the first item
+                console.log(`[Blob Storage] No blob found for ${filename} at ${blobPath} or root level after retry. This is normal for new files. Returning empty array.`);
+                return [];
               }
             }
           } catch (retryError: any) {
             console.error(`[Blob Storage] Retry failed:`, retryError.message);
+            // If error is about file not found, return empty array (first time use)
+            if (retryError.message.includes('No blob found') || retryError.message.includes('404')) {
+              console.log(`[Blob Storage] File ${filename} doesn't exist yet. This is normal for new files. Returning empty array.`);
+              return [];
+            }
             // If it's still a 403, provide helpful message
             if (retryError.message.includes('403')) {
-              throw new Error(`403 Forbidden: Blob may not be public or token is invalid. Please verify: 1) Blob was uploaded with access: 'public', 2) BLOB_READ_WRITE_TOKEN is correct in Vercel environment variables, 3) Token has proper permissions. Original error: ${errorText.substring(0, 100)}`);
+              throw new Error(`403 Forbidden: Blob may not be public or token is invalid. 
+
+CÁCH KHẮC PHỤC:
+1. Lấy token mới từ Blob Store:
+   - Vào https://vercel.com/dashboard/stores
+   - Chọn Blob Store của bạn (ví dụ: website-tutor-student-blob)
+   - Vào tab "Settings" → "Tokens"
+   - Copy token có dạng: vercel_blob_rw_xxxxx
+
+2. Cập nhật token trên Vercel:
+   - Vào https://vercel.com/dashboard → Chọn project của bạn
+   - Settings → Environment Variables
+   - Tìm BLOB_READ_WRITE_TOKEN → Edit
+   - Paste token mới → Save
+   - QUAN TRỌNG: Redeploy project để áp dụng thay đổi
+
+3. Nếu vẫn lỗi, upload lại các file:
+   - Chạy: BLOB_READ_WRITE_TOKEN=token-mới npm run upload:blob
+   - Đảm bảo các file được upload với access: 'public'
+
+Original error: ${errorText.substring(0, 200)}`);
             }
             throw retryError;
           }
@@ -506,27 +620,27 @@ export class JSONStorage {
           console.error(`[Blob Storage] Failed to fetch blob: ${errorStatus}`, errorText.substring(0, 200));
           throw new Error(`Failed to fetch blob: ${errorStatus}. ${errorText.substring(0, 100)}`);
         }
-      }
-      
-      const content = await response.text();
-      
-      // Validate that content is valid JSON (not HTML or error page)
-      const trimmedContent = content.trim();
-      if (!trimmedContent.startsWith('[') && !trimmedContent.startsWith('{')) {
-        console.error(`[Blob Storage] Invalid JSON format for ${blobPath}: content starts with "${trimmedContent.substring(0, 100)}"`);
-        console.error(`[Blob Storage] Content length: ${content.length} bytes`);
-        throw new Error(`Invalid JSON format for ${blobPath}. Content appears to be HTML or error page instead of JSON. Please verify the file was uploaded correctly.`);
-      }
-      
-      try {
-        const parsed = JSON.parse(content);
-        console.log(`[Blob Storage] Successfully read ${filename}, found ${Array.isArray(parsed) ? parsed.length : 'N/A'} items`);
-        return parsed;
-      } catch (parseError: any) {
-        console.error(`[Blob Storage] JSON parse error for ${blobPath}:`, parseError.message);
-        console.error(`[Blob Storage] Content preview: ${trimmedContent.substring(0, 200)}`);
-        throw new Error(`Failed to parse JSON from ${blobPath}: ${parseError.message}`);
-      }
+        }
+        
+        const content = await response.text();
+        
+        // Validate that content is valid JSON (not HTML or error page)
+        const trimmedContent = content.trim();
+        if (!trimmedContent.startsWith('[') && !trimmedContent.startsWith('{')) {
+          console.error(`[Blob Storage] Invalid JSON format for ${blobPath}: content starts with "${trimmedContent.substring(0, 100)}"`);
+          console.error(`[Blob Storage] Content length: ${content.length} bytes`);
+          throw new Error(`Invalid JSON format for ${blobPath}. Content appears to be HTML or error page instead of JSON. Please verify the file was uploaded correctly.`);
+        }
+        
+        try {
+          const parsed = JSON.parse(content);
+          console.log(`[Blob Storage] Successfully read ${filename}, found ${Array.isArray(parsed) ? parsed.length : 'N/A'} items`);
+          return parsed;
+        } catch (parseError: any) {
+          console.error(`[Blob Storage] JSON parse error for ${blobPath}:`, parseError.message);
+          console.error(`[Blob Storage] Content preview: ${trimmedContent.substring(0, 200)}`);
+          throw new Error(`Failed to parse JSON from ${blobPath}: ${parseError.message}`);
+        }
     } catch (error: any) {
       console.error(`[Blob Storage] Error reading ${filename}:`, error.message);
       console.error(`[Blob Storage] Error stack:`, error.stack);
@@ -543,16 +657,38 @@ export class JSONStorage {
     // This reduces blob operations from 2 per write to just 1
     const blobPath = `data/${filename}`;
     
-    const result = await put(blobPath, content, {
+    console.log(`[Blob Storage] Writing to ${blobPath}, content size: ${content.length} bytes, items: ${data.length}`);
+    
+    try {
+      const result = await put(blobPath, content, {
       access: 'public',
       addRandomSuffix: false,
-      allowOverwrite: true
-    });
+        allowOverwrite: true,
+        contentType: 'application/json'
+      });
     
-    // Cache the URL after writing to avoid list() on next read
-    if (result.url) {
-      this.blobUrlCache.set(blobPath, result.url);
-      console.log(`[Blob Storage] Cached URL for ${blobPath} after write`);
+      console.log(`[Blob Storage] Successfully wrote to ${blobPath}`);
+      console.log(`[Blob Storage] Blob details:`, {
+        pathname: result.pathname,
+        url: result.url
+      });
+    
+      // IMPORTANT: Update cache with the new URL after writing
+      // This ensures subsequent reads will use the correct URL
+      if (result.url) {
+        this.blobUrlCache.set(blobPath, result.url);
+        // Also update root level cache if it exists
+        this.blobUrlCache.set(filename, result.url);
+        console.log(`[Blob Storage] Updated cache with new URL for ${blobPath}`);
+        console.log(`[Blob Storage] Cache now contains URL for ${blobPath}: ${result.url.substring(0, 80)}...`);
+      } else {
+        console.error(`[Blob Storage] WARNING: No URL returned from put() for ${blobPath}`);
+      }
+    } catch (error: any) {
+      console.error(`[Blob Storage] Error writing to ${blobPath}:`, error.message);
+      console.error(`[Blob Storage] Error details:`, error);
+      console.error(`[Blob Storage] Error stack:`, error.stack);
+      throw error;
     }
   }
 
@@ -567,8 +703,8 @@ export class JSONStorage {
       // WARNING: list() is an Advanced Operation - use sparingly
       // Consider caching results or removing this function if not needed
       try {
-        const { blobs } = await list({ prefix: 'data/' });
-        return blobs.map((blob) => blob.pathname.replace('data/', ''));
+      const { blobs } = await list({ prefix: 'data/' });
+      return blobs.map((blob) => blob.pathname.replace('data/', ''));
       } catch (error: any) {
         console.error('[Blob Storage] Error listing files:', error.message);
         // Return empty array instead of throwing to avoid breaking the app
@@ -582,7 +718,7 @@ export class JSONStorage {
         return files.filter(file => file.endsWith('.json'));
       } catch (error: any) {
         console.error('[Storage] Error listing local files:', error.message);
-        return [];
+      return [];
       }
     }
   }
@@ -625,19 +761,19 @@ if (useLocalStorage) {
   console.log('[Storage] Using local file system (blob storage disabled via USE_LOCAL_STORAGE=true)');
 } else {
   // Auto-detect: use blob if on Vercel or if BLOB_READ_WRITE_TOKEN is provided
-  if (process.env.VERCEL) {
-    // On Vercel, file system is read-only - MUST use Blob Storage
-    if (!process.env.BLOB_READ_WRITE_TOKEN) {
-      // This will be handled in constructor - it will throw error if useBlob=true but no token
-      // But we still need to set shouldUseBlob=true to force Blob usage
-      // The constructor will throw a clear error message
-      shouldUseBlob = true; // Force Blob, constructor will check token and throw if missing
-    } else {
-      shouldUseBlob = true;
-    }
-  } else if (process.env.BLOB_READ_WRITE_TOKEN) {
-    // Not on Vercel, but token is provided - use Blob Storage (optional)
+if (process.env.VERCEL) {
+  // On Vercel, file system is read-only - MUST use Blob Storage
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    // This will be handled in constructor - it will throw error if useBlob=true but no token
+    // But we still need to set shouldUseBlob=true to force Blob usage
+    // The constructor will throw a clear error message
+    shouldUseBlob = true; // Force Blob, constructor will check token and throw if missing
+  } else {
     shouldUseBlob = true;
+  }
+} else if (process.env.BLOB_READ_WRITE_TOKEN) {
+  // Not on Vercel, but token is provided - use Blob Storage (optional)
+  shouldUseBlob = true;
     console.log('[Storage] Using Vercel Blob Storage (BLOB_READ_WRITE_TOKEN found)');
   } else {
     // Not on Vercel, no token - use local file system

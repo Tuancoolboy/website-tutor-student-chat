@@ -361,19 +361,19 @@
     ],
     "unreadCount": {
       "tut_NrIX8Wa7MS0G": 2,
-      "tut_TNes434P5AEZ": 2
+      "tut_TNes434P5AEZ": 11
     },
     "createdAt": "2025-11-09T16:33:05.425Z",
-    "updatedAt": "2025-11-10T02:32:46.466Z",
+    "updatedAt": "2025-11-10T14:12:08.648Z",
     "lastMessage": {
-      "id": "msg_KUcG0X6umwqW",
+      "id": "msg_KPSpNF8U0vEz",
       "conversationId": "conv_0r4FVG5mlb_B",
-      "senderId": "tut_TNes434P5AEZ",
-      "receiverId": "tut_NrIX8Wa7MS0G",
-      "content": "siuuuuuuuu",
+      "senderId": "tut_NrIX8Wa7MS0G",
+      "receiverId": "tut_TNes434P5AEZ",
+      "content": "🥺",
       "type": "text",
       "read": false,
-      "createdAt": "2025-11-10T02:32:46.465Z"
+      "createdAt": "2025-11-10T14:12:08.641Z"
     }
   },
   {
@@ -388,5 +388,18 @@
     },
     "createdAt": "2025-11-10T02:33:04.560Z",
     "updatedAt": "2025-11-10T02:33:04.560Z"
+  },
+  {
+    "id": "conv_8VttL8hkKqa-",
+    "participants": [
+      "stu_Dkzw5MfS0lmg",
+      "tut_NrIX8Wa7MS0G"
+    ],
+    "unreadCount": {
+      "stu_Dkzw5MfS0lmg": 0,
+      "tut_NrIX8Wa7MS0G": 0
+    },
+    "createdAt": "2025-11-10T13:39:19.705Z",
+    "updatedAt": "2025-11-10T13:39:19.705Z"
   }
 ]

@@ -687,5 +687,32 @@
     ],
     "createdAt": "2025-11-06T07:51:29.188Z",
     "updatedAt": "2025-11-06T07:51:29.188Z"
+  },
+  {
+    "id": "cmt_D4PdlRuyXbUS",
+    "postId": "post_mnjaWbPI7gYd",
+    "authorId": "tut_NrIX8Wa7MS0G",
+    "content": "sieueu",
+    "likes": [],
+    "createdAt": "2025-11-10T17:43:03.432Z",
+    "updatedAt": "2025-11-10T17:43:03.432Z"
+  },
+  {
+    "id": "cmt_F9XllFXO36bd",
+    "postId": "post_HvduG8f3ogG0",
+    "authorId": "tut_NrIX8Wa7MS0G",
+    "content": "siuuu",
+    "likes": [],
+    "createdAt": "2025-11-10T17:49:08.910Z",
+    "updatedAt": "2025-11-10T17:49:08.910Z"
+  },
+  {
+    "id": "cmt_1KnsmHmsygNN",
+    "postId": "post_sfwWa5WGM8s4",
+    "authorId": "tut_NrIX8Wa7MS0G",
+    "content": "siuuu",
+    "likes": [],
+    "createdAt": "2025-11-11T10:46:10.669Z",
+    "updatedAt": "2025-11-11T10:46:10.669Z"
   }
 ]

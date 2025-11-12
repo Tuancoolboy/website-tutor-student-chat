@@ -24,6 +24,8 @@ export async function listPostsHandler(req: AuthRequest, res: Response) {
     const pageNum = parseInt(page as string);
     const limitNum = parseInt(limit as string);
 
+    console.log('[Forum] Loading posts with filters:', { category, search, page: pageNum, limit: limitNum });
+
     const filter = (post: ForumPost) => {
       if (category && post.category !== category) return false;
       
@@ -38,6 +40,7 @@ export async function listPostsHandler(req: AuthRequest, res: Response) {
       return true;
     };
 
+    console.log('[Forum] Calling storage.paginate for forum-posts.json...');
     const result = await storage.paginate<ForumPost>(
       'forum-posts.json',
       pageNum,
@@ -45,8 +48,39 @@ export async function listPostsHandler(req: AuthRequest, res: Response) {
       filter
     );
 
-    return res.json(result);
+    console.log('[Forum] Storage returned', result.data.length, 'posts (total:', result.pagination.total, ')');
+
+    // Count comments for each post
+    const postsWithComments = await Promise.all(
+      result.data.map(async (post) => {
+        try {
+          const comments = await storage.read('forum-comments.json');
+          const commentCount = comments.filter((c: any) => c.postId === post.id).length;
+          return {
+            ...post,
+            commentsCount: commentCount
+          };
+        } catch (error) {
+          console.error(`Error counting comments for post ${post.id}:`, error);
+          return {
+            ...post,
+            commentsCount: 0
+          };
+        }
+      })
+    );
+
+    console.log('[Forum] Returning', postsWithComments.length, 'posts with comments');
+
+    // Return with success flag for consistency with other APIs
+    return res.json({
+      success: true,
+      data: postsWithComments,
+      pagination: result.pagination
+    });
   } catch (error: any) {
+    console.error('[Forum] Error in listPostsHandler:', error);
+    console.error('[Forum] Error stack:', error.stack);
     return res.status(500).json(
       errorResponse('Lỗi lấy danh sách bài viết: ' + error.message)
     );
@@ -77,7 +111,9 @@ export async function createPostHandler(req: AuthRequest, res: Response) {
       updatedAt: now()
     };
 
+    console.log('[Forum] Creating post:', newPost.id, newPost.title);
     await storage.create('forum-posts.json', newPost);
+    console.log('[Forum] Post created successfully:', newPost.id);
 
     return res.status(201).json(
       successResponse(newPost, 'Tạo bài viết thành công')

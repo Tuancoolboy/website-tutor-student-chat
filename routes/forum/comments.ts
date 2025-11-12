@@ -29,7 +29,12 @@ export async function getCommentsHandler(req: AuthRequest, res: Response) {
       (comment) => comment.postId === id
     );
 
-    return res.json(result);
+    // Return with success flag for consistency with other APIs
+    return res.json({
+      success: true,
+      data: result.data,
+      pagination: result.pagination
+    });
   } catch (error: any) {
     return res.status(500).json(
       errorResponse('Lỗi lấy bình luận: ' + error.message)

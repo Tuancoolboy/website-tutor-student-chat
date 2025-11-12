@@ -73,6 +73,9 @@ const Messages: React.FC = () => {
   const activeUsersIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const activeUsersTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const lastOnlineUsersRef = useRef<Set<string>>(new Set())
+  const usersListCacheRef = useRef<any[]>([]) // Cache users list to avoid repeated fetches
+  const usersListCacheTimeRef = useRef<number>(0) // Cache timestamp
+  const USERS_CACHE_DURATION = 5 * 60 * 1000 // Cache users for 5 minutes
 
   // Online Status Hook - Track which users are online via WebSocket
   const { onlineUsers, isUserOnline, isConnected: isWebSocketConnected } = useOnlineStatus({ enabled: true })
@@ -239,21 +242,21 @@ const Messages: React.FC = () => {
                 console.error('[Messages] Failed to batch load users:', error)
               }
               // Fallback to individual loading if batch fails
-              const userPromises = Array.from(allUserIds).map(async (userId) => {
-                try {
-                  const userResponse = await usersAPI.get(userId)
-                  if (userResponse.success && userResponse.data) {
-                    return [userId, userResponse.data]
-                  }
-                } catch (error) {
-                  if (process.env.NODE_ENV === 'development') {
-                    console.error(`[Messages] Failed to load user ${userId}:`, error)
-                  }
+            const userPromises = Array.from(allUserIds).map(async (userId) => {
+              try {
+                const userResponse = await usersAPI.get(userId)
+                if (userResponse.success && userResponse.data) {
+                  return [userId, userResponse.data]
                 }
-                return null
-              })
-              
-              const userResults = await Promise.all(userPromises)
+              } catch (error) {
+                if (process.env.NODE_ENV === 'development') {
+                  console.error(`[Messages] Failed to load user ${userId}:`, error)
+                }
+              }
+              return null
+            })
+            
+            const userResults = await Promise.all(userPromises)
               userResults.forEach(result => {
                 if (result) {
                   finalUsersMap[result[0]] = result[1]
@@ -265,10 +268,24 @@ const Messages: React.FC = () => {
           // Update usersRef FIRST for immediate access
           usersRef.current = finalUsersMap
           
-          // Set users and conversations together - React will batch and re-render correctly
-          // formattedConversations uses users state directly, so it will get the updated data
-          setUsers(finalUsersMap)
-          setUsersLoaded(prev => prev + 1) // Force re-render when users are loaded
+          // Only update users state if data actually changed to prevent unnecessary re-renders
+          let usersChanged = false
+          setUsers(prevUsers => {
+            // Check if users actually changed
+            const prevUsersJson = JSON.stringify(prevUsers)
+            const newUsersJson = JSON.stringify(finalUsersMap)
+            if (prevUsersJson !== newUsersJson) {
+              usersChanged = true
+              return finalUsersMap
+            }
+            return prevUsers // Return same reference to prevent re-render
+          })
+          
+          // Only update usersLoaded if users actually changed
+          if (usersChanged) {
+            setUsersLoaded(prev => prev + 1) // Force re-render when users are loaded
+          }
+          
           setConversations(conversationsData)
         } else {
           setConversations([])
@@ -315,7 +332,7 @@ const Messages: React.FC = () => {
       activeUsersIntervalRef.current = null
     }
 
-    const loadActiveUsers = async () => {
+    const loadActiveUsers = async (useCache: boolean = true) => {
       // Prevent multiple simultaneous calls
       if (isLoadingActiveUsersRef.current) {
         if (process.env.NODE_ENV === 'development') {
@@ -333,11 +350,24 @@ const Messages: React.FC = () => {
         isLoadingActiveUsersRef.current = true
         setLoadingActiveUsers(true)
         
-        // Load all users
+        // Check cache first to avoid unnecessary API calls
+        let usersList: any[] = []
+        const now = Date.now()
+        const cacheValid = useCache && 
+          usersListCacheRef.current.length > 0 && 
+          (now - usersListCacheTimeRef.current) < USERS_CACHE_DURATION
+        
+        if (cacheValid) {
+          // Use cached users list
+          usersList = usersListCacheRef.current
+          if (process.env.NODE_ENV === 'development') {
+            console.log('[Tutor Messages] Using cached users list')
+          }
+        } else {
+          // Load all users from API (only when cache is invalid)
         const response = await usersAPI.list({ limit: 100 })
         
         // Handle different response formats
-        let usersList: any[] = []
         if (response && Array.isArray(response)) {
           usersList = response
         } else if (response.success && response.data) {
@@ -348,6 +378,11 @@ const Messages: React.FC = () => {
           }
         } else if (response.data && Array.isArray(response.data)) {
           usersList = response.data
+          }
+          
+          // Update cache
+          usersListCacheRef.current = usersList
+          usersListCacheTimeRef.current = now
         }
         
         // Filter out current user
@@ -382,7 +417,16 @@ const Messages: React.FC = () => {
           })
           .slice(0, 12) // Show top 12 active users
         
-        setActiveUsers(activeUsersList)
+        // Only update state if active users actually changed
+        setActiveUsers(prevActiveUsers => {
+          const prevIds = new Set(prevActiveUsers.map(u => u.id).sort())
+          const newIds = new Set(activeUsersList.map(u => u.id).sort())
+          if (prevIds.size !== newIds.size || 
+              Array.from(prevIds).some(id => !newIds.has(id))) {
+            return activeUsersList
+          }
+          return prevActiveUsers // Return same reference to prevent re-render
+        })
         
         // Update last known online users
         lastOnlineUsersRef.current = new Set(activeUsersList.map(u => u.id))
@@ -408,25 +452,31 @@ const Messages: React.FC = () => {
     
     // Only load if:
     // 1. We have currentUser
-    // 2. Online users actually changed (not just a re-render)
+    // 2. Online users actually changed (not just a re-render) OR no active users yet
     // 3. Not already loading
     if (currentUser && (onlineUsersChanged || activeUsers.length === 0)) {
-      // Debounce: wait 1 second before loading to prevent rapid calls
+      // Debounce: wait 2 seconds before loading to prevent rapid calls
+      // Use cache if onlineUsers changed (users list doesn't change often)
       activeUsersTimeoutRef.current = setTimeout(() => {
         if (!isLoadingActiveUsersRef.current) {
-          loadActiveUsers()
+          // Use cache when onlineUsers changed (only filter changes, not user list)
+          // Force refresh only if cache is invalid or no active users
+          const useCache = onlineUsersChanged && activeUsers.length > 0
+          loadActiveUsers(useCache)
         }
-      }, 1000) // 1 second debounce
+      }, 2000) // 2 seconds debounce (increased from 1 second)
     }
     
     // Set up interval for periodic refresh (only if we have currentUser)
-    // Increased to 90 seconds to reduce load - optimized for 2-3 users testing
+    // Increased to 3 minutes to reduce load - optimized for 2-3 users testing
+    // Users list doesn't change often, so we can cache it longer
     if (currentUser) {
       activeUsersIntervalRef.current = setInterval(() => {
         if (!isLoadingActiveUsersRef.current) {
-          loadActiveUsers()
+          // Use cache for periodic refresh (only refresh online status)
+          loadActiveUsers(true) // Use cache - only filter by online status
         }
-      }, 90000) // Refresh every 90 seconds (increased from 60)
+      }, 180000) // Refresh every 3 minutes (increased from 90 seconds)
     }
     
     return () => {
@@ -576,7 +626,7 @@ const Messages: React.FC = () => {
   // Format conversation inline to avoid useCallback dependency issues
   // Use Object.keys(users).length as dependency instead of users object to avoid reference issues
   const usersKeysLength = Object.keys(users).length
-  const currentUserId = currentUser?.userId || currentUser?.id || ''
+    const currentUserId = currentUser?.userId || currentUser?.id || ''
   
   const formattedConversations = useMemo(() => {
     if (!currentUser) return []
@@ -585,27 +635,27 @@ const Messages: React.FC = () => {
       const otherId = conversation.participants?.find((id: string) => id !== currentUserId)
       // Use users state directly instead of usersRef to ensure it updates immediately
       const otherUser = otherId ? users[otherId] : null
-      const lastMessage = conversation.lastMessage
-      const unreadCount = conversation.unreadCount?.[currentUserId] || 0
-      
-      // Get other participant ID even if user info not loaded yet
-      const displayName = otherUser?.name || otherUser?.email || `User ${otherId?.slice(0, 8) || 'Unknown'}`
-      
-      return {
-        id: conversation.id,
-        name: displayName,
-        type: otherUser?.role || 'user',
-        lastMessage: lastMessage?.content || 'No messages yet',
-        time: lastMessage?.createdAt 
-          ? formatDistanceToNow(new Date(lastMessage.createdAt), { addSuffix: true })
-          : 'No messages',
-        unread: unreadCount,
-        online: false, // TODO: Implement online status
-        avatar: getInitials(displayName),
-        subject: otherUser?.subjects?.[0] || otherUser?.preferredSubjects?.[0] || 'General',
-        otherUser,
-        otherId
-      }
+    const lastMessage = conversation.lastMessage
+    const unreadCount = conversation.unreadCount?.[currentUserId] || 0
+    
+    // Get other participant ID even if user info not loaded yet
+    const displayName = otherUser?.name || otherUser?.email || `User ${otherId?.slice(0, 8) || 'Unknown'}`
+    
+    return {
+      id: conversation.id,
+      name: displayName,
+      type: otherUser?.role || 'user',
+      lastMessage: lastMessage?.content || 'No messages yet',
+      time: lastMessage?.createdAt 
+        ? formatDistanceToNow(new Date(lastMessage.createdAt), { addSuffix: true })
+        : 'No messages',
+      unread: unreadCount,
+      online: false, // TODO: Implement online status
+      avatar: getInitials(displayName),
+      subject: otherUser?.subjects?.[0] || otherUser?.preferredSubjects?.[0] || 'General',
+      otherUser,
+      otherId
+    }
     })
   }, [conversations, conversations.length, currentUserId, users, usersKeysLength, usersLoaded, currentUser])
   
@@ -658,13 +708,26 @@ const Messages: React.FC = () => {
   const loadAvailableUsers = async () => {
     try {
       setLoadingUsers(true)
+      
+      // Check cache first to avoid unnecessary API calls
+      const now = Date.now()
+      const cacheValid = usersListCacheRef.current.length > 0 && 
+        (now - usersListCacheTimeRef.current) < USERS_CACHE_DURATION
+      
+      let usersList: any[] = []
+      
+      if (cacheValid) {
+        // Use cached users list
+        usersList = usersListCacheRef.current
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[Tutor Messages] Using cached users list for available users')
+        }
+      } else {
       // Load all users (students, tutors, management) - không filter theo role
       const response = await usersAPI.list({ limit: 100 })
       
       // Handle different response formats
       // API returns: { data: [...], pagination: {...} } OR { success: true, data: [...] }
-      let usersList: any[] = []
-      
       if (response && Array.isArray(response)) {
         // Direct array response
         usersList = response
@@ -680,6 +743,11 @@ const Messages: React.FC = () => {
         usersList = response.data
       } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
         usersList = response.data.data
+        }
+        
+        // Update cache
+        usersListCacheRef.current = usersList
+        usersListCacheTimeRef.current = now
       }
       
       if (usersList.length > 0) {
@@ -690,7 +758,7 @@ const Messages: React.FC = () => {
         )
         setAvailableUsers(filteredUsers)
       } else {
-        console.warn('[Tutor Messages] No users found in response. Response structure:', Object.keys(response || {}))
+        console.warn('[Tutor Messages] No users found in usersList')
         setAvailableUsers([])
       }
     } catch (error) {
@@ -762,7 +830,16 @@ const Messages: React.FC = () => {
                   usersMap[result[0]] = result[1]
                 }
               })
-              setUsers(usersMap)
+              
+              // Only update users state if data actually changed
+              setUsers(prevUsers => {
+                const prevUsersJson = JSON.stringify(prevUsers)
+                const newUsersJson = JSON.stringify(usersMap)
+                if (prevUsersJson !== newUsersJson) {
+                  return usersMap
+                }
+                return prevUsers // Return same reference to prevent re-render
+              })
             }
           } catch (error) {
             console.error('Failed to reload conversations:', error)
@@ -1438,7 +1515,7 @@ const Messages: React.FC = () => {
                                 )}
                                 {/* Text Message */}
                                 {message.type === 'text' && (
-                                  <p className="break-words">{message.content || '(No content)'}</p>
+                                <p className="break-words">{message.content || '(No content)'}</p>
                                 )}
                                 <span className={`text-xs block mt-1 ${
                                   isOwnMessage
@@ -1461,12 +1538,12 @@ const Messages: React.FC = () => {
                     {/* Selected File Preview */}
                     {selectedFile && (
                       <div className={`mb-2 p-2 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'} flex items-center justify-between`}>
-                        <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2">
                           <AttachFileIcon className="w-4 h-4" />
                           <span className="text-sm truncate max-w-xs">{selectedFile.name}</span>
                           <span className="text-xs text-gray-500">({(selectedFile.size / 1024).toFixed(1)} KB)</span>
                         </div>
-                        <button
+                      <button 
                           onClick={() => {
                             setSelectedFile(null)
                             if (fileInputRef.current) fileInputRef.current.value = ''
@@ -1513,15 +1590,15 @@ const Messages: React.FC = () => {
                       </div>
                       
                       <div className="relative" ref={emojiPickerRef}>
-                        <button 
+                      <button 
                           onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                           className={`p-2 rounded-lg ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} ${showEmojiPicker ? (theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100') : ''}`}
-                          style={{
-                            color: theme === 'dark' ? '#ffffff' : '#374151'
-                          }}
-                        >
-                          <EmojiEmotionsIcon className="w-5 h-5" />
-                        </button>
+                        style={{
+                          color: theme === 'dark' ? '#ffffff' : '#374151'
+                        }}
+                      >
+                        <EmojiEmotionsIcon className="w-5 h-5" />
+                      </button>
                         {showEmojiPicker && (
                           <EmojiPicker
                             onEmojiSelect={handleEmojiSelect}

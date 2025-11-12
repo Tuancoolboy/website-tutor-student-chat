@@ -111,6 +111,7 @@ Lưu ý: Sau khi thêm Environment Variable, bạn PHẢI redeploy project mới
     const blob = await put(blobFileName, file, {
       access: 'public',
       addRandomSuffix: false,
+      allowOverwrite: true, // Allow overwrite if file already exists
       contentType: mimeType
     });
 
